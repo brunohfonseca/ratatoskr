@@ -16,8 +16,8 @@ const (
 
 type Service struct {
 	ID     primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Name   string             `bson:"name" json:"name"`
-	Domain string             `bson:"domain" json:"domain"`
+	Name   string             `bson:"name" json:"name" index:"unique"`
+	Domain string             `bson:"domain" json:"domain" index:""`
 	Port   int                `bson:"port,omitempty" json:"port,omitempty"`
 
 	// Basic Health Check
@@ -35,7 +35,7 @@ type Service struct {
 	} `bson:"ssl_data,omitempty" json:"ssl_data,omitempty"`
 
 	// Current Status
-	Status       ServiceStatus `bson:"status" json:"status"`
+	Status       ServiceStatus `bson:"status" json:"status" index:""`
 	ResponseTime time.Duration `bson:"response_time,omitempty" json:"response_time,omitempty"`
 	ErrorMessage string        `bson:"error_message,omitempty" json:"error_message,omitempty"`
 
@@ -46,7 +46,7 @@ type Service struct {
 	Authentication interface{} `bson:"authentication,omitempty" json:"authentication,omitempty"`
 
 	// Control Fields
-	Enabled   bool      `bson:"enabled" json:"enabled"`
+	Enabled   bool      `bson:"enabled" json:"enabled" index:""`
 	LastCheck time.Time `bson:"last_check,omitempty" json:"last_check,omitempty"`
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
@@ -55,9 +55,9 @@ type Service struct {
 // ServiceHealthHistory - Para manter histórico de checks
 type ServiceHealthHistory struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	ServiceID    primitive.ObjectID `bson:"service_id" json:"service_id"`
-	Status       ServiceStatus      `bson:"status" json:"status"`
+	ServiceID    primitive.ObjectID `bson:"service_id" json:"service_id" index:""`
+	Status       ServiceStatus      `bson:"status" json:"status" index:""`
 	ResponseTime time.Duration      `bson:"response_time,omitempty" json:"response_time,omitempty"`
 	ErrorMessage string             `bson:"error_message,omitempty" json:"error_message,omitempty"`
-	CheckedAt    time.Time          `bson:"checked_at" json:"checked_at"`
+	CheckedAt    time.Time          `bson:"checked_at" json:"checked_at" index:"desc" ttl:"120d"`
 }

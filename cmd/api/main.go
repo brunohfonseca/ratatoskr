@@ -31,6 +31,11 @@ func main() {
 	config.SetupLogs()
 	log.Info().Msgf("🚀 Iniciando o serviço com o arquivo de configuração: %s", *configFile)
 	database.ConnectMongoDB(cfg.Database.MongoURL)
+
+	// Registrar models e sincronizar automaticamente
+	database.RegisterAllModels()
+	database.AutoSync(cfg.Database.MongoURL)
+
 	database.ConnectRedis(cfg.Redis.RedisURL)
 
 	c := make(chan os.Signal, 1)
