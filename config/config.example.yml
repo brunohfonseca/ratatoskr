@@ -1,4 +1,6 @@
 server:
+  name: "ratatoskr-api"
+  environment: "development"
   port: 8080
   debug: true
   trusted_proxies:
@@ -13,10 +15,3 @@ database:
   mongo_url: "mongodb://127.0.0.1:27017/ssl"
 redis:
   redis_url: "redis://127.0.0.1:6379/0"
-alerting:
-  slack:
-    channel: ""
-    token: ""
-  telegram:
-    bot_token: ""
-    chat_id: ""

@@ -2,5 +2,6 @@
 .env
 .docker
 config.yml
+worker-config.yml
 /ssl
 tmp

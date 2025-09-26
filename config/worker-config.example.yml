@@ -1,0 +1,6 @@
+server:
+  environment: "development"
+database:
+  mongo_url: "mongodb://127.0.0.1:27017/ssl"
+redis:
+  redis_url: "redis://127.0.0.1:6379/0"
