@@ -12,7 +12,6 @@ import (
 )
 
 func setupRouter(cfg *config.AppConfig) *gin.Engine {
-	// Configurar modo de produção para reduzir logs de debug
 	if !cfg.Server.Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -26,7 +25,6 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 
 	// Adicionar middleware de recovery personalizado
 	router.Use(gin.Recovery())
-
 	// Adicionar nosso middleware de logging com zerolog
 	router.Use(ZerologMiddleware())
 
@@ -55,9 +53,13 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 func ServerStart(cfg *config.AppConfig) *http.Server {
 	router := setupRouter(cfg)
 
+	// Criar logger personalizado que descarta logs de erro TLS
+	silentLogger := log.New(io.Discard, "", 0)
+
 	srv := &http.Server{
-		Addr:    ":" + strconv.Itoa(cfg.Server.Port),
-		Handler: router,
+		Addr:     ":" + strconv.Itoa(cfg.Server.Port),
+		Handler:  router,
+		ErrorLog: silentLogger,
 	}
 
 	if cfg.Server.SSL.Enabled {
@@ -65,6 +67,6 @@ func ServerStart(cfg *config.AppConfig) *http.Server {
 		srv.TLSConfig = nil
 	}
 
-	log.Info().Msgf("Starting REST API on port %s", srv.Addr)
+	zlog.Info().Msgf("Starting REST API on port %s", srv.Addr)
 	return srv
 }

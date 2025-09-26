@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	zlog "github.com/rs/zerolog/log"
 )
 
 // ZerologMiddleware cria um middleware que usa zerolog para logging das requisições
@@ -32,11 +32,11 @@ func ZerologMiddleware() gin.HandlerFunc {
 		// Determinar nível do log baseado no status code
 		var logEvent *zerolog.Event
 		if statusCode >= 500 {
-			logEvent = log.Error()
+			logEvent = zlog.Error()
 		} else if statusCode >= 400 {
-			logEvent = log.Warn()
+			logEvent = zlog.Warn()
 		} else {
-			logEvent = log.Info()
+			logEvent = zlog.Info()
 		}
 
 		logEvent.
