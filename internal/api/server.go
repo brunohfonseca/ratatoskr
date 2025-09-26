@@ -39,7 +39,7 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 	return router
 }
 
-func Server(cfg *config.AppConfig) {
+func ServerStart(cfg *config.AppConfig) {
 	log.Printf("Starting REST API on port %d", cfg.Server.Port)
 	router := setupRouter(cfg)
 

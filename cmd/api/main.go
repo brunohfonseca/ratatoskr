@@ -27,5 +27,5 @@ func main() {
 
 	database.ConnectMongoDB(cfg.Database.MongoURL)
 	database.ConnectRedis(cfg.Redis.RedisURL)
-	api.Server(cfg)
+	api.ServerStart(cfg)
 }
