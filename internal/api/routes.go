@@ -8,23 +8,18 @@ import (
 
 // setupRoutes define todas as rotas da aplicação
 func setupRoutes(router *gin.Engine) {
-	sslRoutes := router.Group("/ssl")
+	servicesRoutes := router.Group("/services")
 	{
-		sslRoutes.GET("/", func(c *gin.Context) {
+		servicesRoutes.GET("/", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
 				"message": "Success",
 			})
 		})
-		sslRoutes.GET("/test", func(c *gin.Context) {
+		servicesRoutes.GET("/test", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
 				"message": "route test",
 			})
 		})
-		//sslRoutes.GET("/certs", handlers.GetSSLHandler)
-		//sslRoutes.POST("/certs", handlers.PostSSLHandler)
-		//sslRoutes.DELETE("/certs/:id", handlers.DeleteSSLHandler)
-		//sslRoutes.PATCH("/certs/:id", handlers.PatchSSLHandler)
-		//sslRoutes.GET("/certs/refresh", handlers.RefreshSSLHandler)
 	}
 
 	// Futuras rotas podem ser adicionadas aqui
