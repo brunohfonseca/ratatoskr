@@ -1,4 +1,4 @@
-module github.com/bhfonseca/ratatoskr
+module github.com/brunohfonseca/ratatoskr
 
 go 1.25.1
 

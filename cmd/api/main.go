@@ -2,11 +2,15 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/bhfonseca/ratatoskr/internal/api"
-	"github.com/bhfonseca/ratatoskr/internal/config"
-	"github.com/bhfonseca/ratatoskr/internal/database"
+	"github.com/brunohfonseca/ratatoskr/internal/api"
+	"github.com/brunohfonseca/ratatoskr/internal/config"
+	"github.com/brunohfonseca/ratatoskr/internal/database"
 )
 
 func main() {
@@ -27,5 +31,22 @@ func main() {
 
 	database.ConnectMongoDB(cfg.Database.MongoURL)
 	database.ConnectRedis(cfg.Redis.RedisURL)
-	api.ServerStart(cfg)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		api.ServerStart(cfg)
+	}()
+
+	fmt.Println("🚀 Servidor iniciado! Pressione Ctrl+C para parar graciosamente.")
+
+	// Aguardar sinal de parada
+	<-c
+	fmt.Println("\n🛑 Sinal de parada recebido. Finalizando aplicação...")
+
+	database.DisconnectMongoDB()
+	database.DisconnectRedis()
+
+	fmt.Println("✅ Aplicação finalizada com sucesso!")
 }

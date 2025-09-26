@@ -28,3 +28,15 @@ func ConnectMongoDB(uri string) {
 
 	MongoClient = client
 }
+
+func DisconnectMongoDB() {
+	if MongoClient != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := MongoClient.Disconnect(ctx); err != nil {
+			log.Printf("Erro ao desconectar do MongoDB: %v", err)
+		} else {
+			fmt.Println("✅ Disconnected from MongoDB")
+		}
+	}
+}

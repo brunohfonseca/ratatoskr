@@ -1,7 +1,7 @@
 package notifications
 
 import (
-	"github.com/bhfonseca/ratatoskr/internal/config"
+	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/slack-go/slack"
 )
 

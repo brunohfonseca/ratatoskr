@@ -29,3 +29,13 @@ func ConnectRedis(RedisURL string) {
 	fmt.Println("Connected to Redis")
 	RedisClient = client
 }
+
+func DisconnectRedis() {
+	if RedisClient != nil {
+		if err := RedisClient.Close(); err != nil {
+			log.Printf("Erro ao desconectar do Redis: %v", err)
+		} else {
+			fmt.Println("✅ Disconnected from Redis")
+		}
+	}
+}

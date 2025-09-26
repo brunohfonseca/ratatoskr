@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/bhfonseca/ratatoskr/internal/config"
+	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/gin-gonic/gin"
 )
 
