@@ -23,7 +23,6 @@ func ZerologMiddleware() gin.HandlerFunc {
 		clientIP := c.ClientIP()
 		method := c.Request.Method
 		statusCode := c.Writer.Status()
-		bodySize := c.Writer.Size()
 
 		if raw != "" {
 			path = path + "?" + raw
@@ -45,7 +44,6 @@ func ZerologMiddleware() gin.HandlerFunc {
 			Int("status", statusCode).
 			Dur("latency", latency).
 			Str("ip", clientIP).
-			Int("size", bodySize).
 			Str("user_agent", c.Request.UserAgent()).
 			Msg("HTTP Request")
 	}

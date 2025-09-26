@@ -47,6 +47,8 @@ func ServerStart(cfg *config.AppConfig) *http.Server {
 	// Criar logger personalizado que descarta logs de erro TLS
 	silentLogger := log.New(io.Discard, "", 0)
 
+	msg := "🔓 Servidor iniciado na porta: %s"
+
 	srv := &http.Server{
 		Addr:     ":" + strconv.Itoa(cfg.Server.Port),
 		Handler:  router,
@@ -56,8 +58,8 @@ func ServerStart(cfg *config.AppConfig) *http.Server {
 	if cfg.Server.SSL.Enabled {
 		srv.Addr = ":" + strconv.Itoa(cfg.Server.SSL.Port)
 		srv.TLSConfig = nil
+		msg = "🔒 Servidor iniciado com SSL na porta %s"
 	}
-
-	zlog.Info().Msgf("Starting REST API on port %s", srv.Addr)
+	zlog.Info().Msgf(msg, srv.Addr)
 	return srv
 }

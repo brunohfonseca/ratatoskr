@@ -20,16 +20,16 @@ func main() {
 
 	_, err := config.LoadConfig(*configFile)
 	if err != nil {
-		log.Fatal().Msgf("Erro ao carregar config: %v", err)
+		log.Fatal().Msgf("❌ Erro ao carregar config: %v", err)
 	}
 
 	cfg := config.Get()
 	if cfg == nil {
-		log.Fatal().Msgf("configuração não carregada: %v", err)
+		log.Fatal().Msgf("❌ Configuração não carregada: %v", err)
 	}
 
 	config.SetupLogs()
-	log.Info().Msgf("Iniciando o serviço com o arquivo de configuração: %s", *configFile)
+	log.Info().Msgf("🚀 Iniciando o serviço com o arquivo de configuração: %s", *configFile)
 	database.ConnectMongoDB(cfg.Database.MongoURL)
 	database.ConnectRedis(cfg.Redis.RedisURL)
 
@@ -41,11 +41,11 @@ func main() {
 	go func() {
 		if cfg.Server.SSL.Enabled {
 			if err := srv.ListenAndServeTLS(cfg.Server.SSL.Cert, cfg.Server.SSL.Key); err != nil && err != http.ErrServerClosed {
-				log.Fatal().Msgf("erro ao iniciar servidor TLS: %v", err)
 			}
+
 		} else {
 			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				log.Fatal().Msgf("erro ao iniciar servidor: %v", err)
+				log.Fatal().Msgf("❌ Erro ao iniciar servidor: %v", err)
 			}
 		}
 	}()
