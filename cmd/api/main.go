@@ -24,7 +24,7 @@ func main() {
 
 	cfg := config.Get()
 	if cfg == nil {
-		panic(err)
+		log.Fatalf("configuração não carregada: %v", err)
 	}
 
 	log.Printf("Iniciando o serviço com o arquivo de configuração: %s", *configFile)
