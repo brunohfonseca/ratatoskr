@@ -1,17 +1,19 @@
 server:
-  port: 8443
+  port: 8080
   debug: true
   ssl:
     enabled: true
-    cert: "ssl/cert.pem"
-    key: "ssl/key.pem"
+    port: 8443
+    cert: "ssl/self-signed.crt"
+    key: "ssl/self-signed.key"
 database:
   mongo_url: "mongodb://127.0.0.1:27017/ssl"
 redis:
   redis_url: "redis://127.0.0.1:6379/0"
 alerting:
   slack:
-    webhook_url: ""
+    channel: ""
+    token: ""
   telegram:
     bot_token: ""
     chat_id: ""
