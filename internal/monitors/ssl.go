@@ -1,4 +1,4 @@
-package ssl
+package monitors
 
 import (
 	"crypto/tls"
