@@ -21,8 +21,9 @@ func SetupLogs() {
 
 type AppConfig struct {
 	Server struct {
-		Port int `yaml:"port"`
-		SSL  struct {
+		Port  int  `yaml:"port"`
+		Debug bool `yaml:"debug"`
+		SSL   struct {
 			Enabled bool   `yaml:"enabled"`
 			Port    int    `yaml:"port"`
 			Cert    string `yaml:"cert"`

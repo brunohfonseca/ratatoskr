@@ -9,8 +9,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func setupRouter() *gin.Engine {
+func setupRouter(cfg *config.AppConfig) *gin.Engine {
+	// Configurar modo de produção para reduzir logs de debug
+	if !cfg.Server.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	router := gin.Default()
+
+	// Configurar proxies confiáveis para remover warning
+	err := router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+	if err != nil {
+		return nil
+	}
 	ssls := router.Group("/ssl")
 	{
 		ssls.GET("/", func(c *gin.Context) {
@@ -30,7 +41,7 @@ func setupRouter() *gin.Engine {
 
 func Server(cfg *config.AppConfig) {
 	log.Printf("Starting REST API on port %d", cfg.Server.Port)
-	router := setupRouter()
+	router := setupRouter(cfg)
 
 	tls := cfg.Server.SSL.Enabled
 	switch tls {
