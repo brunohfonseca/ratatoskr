@@ -39,6 +39,9 @@ type Service struct {
 	ResponseTime time.Duration `bson:"response_time,omitempty" json:"response_time,omitempty"`
 	ErrorMessage string        `bson:"error_message,omitempty" json:"error_message,omitempty"`
 
+	// Alert Groups (referência aos grupos de alerta)
+	AlertGroupIDs []primitive.ObjectID `bson:"alert_group_ids,omitempty" json:"alert_group_ids,omitempty"`
+
 	// Authentication
 	Authentication interface{} `bson:"authentication,omitempty" json:"authentication,omitempty"`
 
@@ -47,4 +50,14 @@ type Service struct {
 	LastCheck time.Time `bson:"last_check,omitempty" json:"last_check,omitempty"`
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
+}
+
+// ServiceHealthHistory - Para manter histórico de checks
+type ServiceHealthHistory struct {
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	ServiceID    primitive.ObjectID `bson:"service_id" json:"service_id"`
+	Status       ServiceStatus      `bson:"status" json:"status"`
+	ResponseTime time.Duration      `bson:"response_time,omitempty" json:"response_time,omitempty"`
+	ErrorMessage string             `bson:"error_message,omitempty" json:"error_message,omitempty"`
+	CheckedAt    time.Time          `bson:"checked_at" json:"checked_at"`
 }
