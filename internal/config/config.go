@@ -22,6 +22,12 @@ func SetupLogs() {
 type AppConfig struct {
 	Server struct {
 		Port int `yaml:"port"`
+		SSL  struct {
+			Enabled bool   `yaml:"enabled"`
+			Port    int    `yaml:"port"`
+			Cert    string `yaml:"cert"`
+			Key     string `yaml:"key"`
+		} `yaml:"ssl"`
 	} `yaml:"server"`
 	Database struct {
 		MongoURL string `yaml:"mongo_url"`

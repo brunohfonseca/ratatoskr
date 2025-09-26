@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/bhfonseca/ratatoskr/internal/config"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,10 +28,23 @@ func setupRouter() *gin.Engine {
 	return router
 }
 
-func Server(port int) {
-	log.Printf("Starting REST API on port %d", port)
+func Server(cfg *config.AppConfig) {
+	log.Printf("Starting REST API on port %d", cfg.Server.Port)
 	router := setupRouter()
-	if err := router.Run(":" + strconv.Itoa(port)); err != nil {
-		panic("Erro ao iniciar o servidor: " + err.Error())
+
+	tls := cfg.Server.SSL.Enabled
+	switch tls {
+	case true:
+		err := router.RunTLS(":"+strconv.Itoa(cfg.Server.SSL.Port), cfg.Server.SSL.Cert, cfg.Server.SSL.Key)
+		if err != nil {
+			log.Fatalf("Erro ao iniciar o servidor: %v", err)
+		}
+	case false:
+		err := router.Run(":" + strconv.Itoa(cfg.Server.Port))
+		if err != nil {
+			log.Fatalf("Erro ao iniciar o servidor: %v", err)
+		}
+	default:
+		log.Fatalf("Erro ao iniciar o servidor: Opção inválida")
 	}
 }
