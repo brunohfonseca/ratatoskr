@@ -1,12 +1,14 @@
 package api
 
 import (
+	"io"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
+	zlog "github.com/rs/zerolog/log"
 )
 
 func setupRouter(cfg *config.AppConfig) *gin.Engine {
@@ -15,7 +17,18 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	router := gin.Default()
+	// Desabilitar logs padrão do Gin redirecionando para discard
+	gin.DefaultWriter = io.Discard
+	gin.DefaultErrorWriter = io.Discard
+
+	// Criar router sem middleware padrão
+	router := gin.New()
+
+	// Adicionar middleware de recovery personalizado
+	router.Use(gin.Recovery())
+
+	// Adicionar nosso middleware de logging com zerolog
+	router.Use(ZerologMiddleware())
 
 	// Configurar proxies confiáveis para remover warning
 	err := router.SetTrustedProxies(cfg.Server.TrustedProxies)
