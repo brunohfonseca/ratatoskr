@@ -39,23 +39,19 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 	return router
 }
 
-func ServerStart(cfg *config.AppConfig) {
-	log.Printf("Starting REST API on port %d", cfg.Server.Port)
+func ServerStart(cfg *config.AppConfig) *http.Server {
 	router := setupRouter(cfg)
 
-	tls := cfg.Server.SSL.Enabled
-	switch tls {
-	case true:
-		err := router.RunTLS(":"+strconv.Itoa(cfg.Server.SSL.Port), cfg.Server.SSL.Cert, cfg.Server.SSL.Key)
-		if err != nil {
-			log.Fatalf("Erro ao iniciar o servidor: %v", err)
-		}
-	case false:
-		err := router.Run(":" + strconv.Itoa(cfg.Server.Port))
-		if err != nil {
-			log.Fatalf("Erro ao iniciar o servidor: %v", err)
-		}
-	default:
-		log.Fatalf("Erro ao iniciar o servidor: Opção inválida")
+	srv := &http.Server{
+		Addr:    ":" + strconv.Itoa(cfg.Server.Port),
+		Handler: router,
 	}
+
+	if cfg.Server.SSL.Enabled {
+		srv.Addr = ":" + strconv.Itoa(cfg.Server.SSL.Port)
+		srv.TLSConfig = nil
+	}
+
+	log.Printf("Starting REST API on port %s", srv.Addr)
+	return srv
 }

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -35,11 +36,21 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
+	srv := api.ServerStart(cfg)
+	// inicia servidor em goroutine
 	go func() {
-		api.ServerStart(cfg)
+		if cfg.Server.SSL.Enabled {
+			if err := srv.ListenAndServeTLS(cfg.Server.SSL.Cert, cfg.Server.SSL.Key); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("erro ao iniciar servidor TLS: %v", err)
+			}
+		} else {
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("erro ao iniciar servidor: %v", err)
+			}
+		}
 	}()
 
-	fmt.Println("🚀 Servidor iniciado! Pressione Ctrl+C para parar graciosamente.")
+	fmt.Println("🚀 Servidor iniciado! Pressione Ctrl+C para finalizar.")
 
 	// Aguardar sinal de parada
 	<-c
