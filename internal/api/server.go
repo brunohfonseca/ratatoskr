@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/brunohfonseca/ratatoskr/internal/api/routes"
 	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/gin-gonic/gin"
 	zlog "github.com/rs/zerolog/log"
@@ -36,7 +37,7 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 	}
 
 	// Configurar as rotas
-	setupRoutes(router)
+	routes.SetupRoutes(router)
 
 	return router
 }

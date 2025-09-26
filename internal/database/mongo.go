@@ -44,6 +44,25 @@ func DisconnectMongoDB() {
 	}
 }
 
+// CheckMongoDBHealth verifica o status da conexão com MongoDB
+func CheckMongoDBHealth() (bool, string, error) {
+	if MongoClient == nil {
+		return false, "disconnected", nil // Não é um erro fatal, apenas não conectado
+	}
+
+	// Criar contexto com timeout curto para health check
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Fazer ping para verificar se a conexão está ativa
+	err := MongoClient.Ping(ctx, nil)
+	if err != nil {
+		return false, "error", err
+	}
+
+	return true, "connected", nil
+}
+
 // Registry para structs automáticas
 var registeredModels []interface{}
 
