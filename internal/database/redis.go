@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -11,7 +12,9 @@ import (
 var RedisClient *redis.Client
 
 func ConnectRedis(RedisURL string) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	opts, err := redis.ParseURL(RedisURL)
 	if err != nil {
 		log.Fatal("Error parsing Redis URL:", err)
