@@ -1,4 +1,4 @@
-package api
+package infrastructure
 
 import (
 	"io"
@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/brunohfonseca/ratatoskr/internal/api/middlewares"
 	"github.com/brunohfonseca/ratatoskr/internal/api/routes"
 	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/gin-gonic/gin"
@@ -28,7 +29,7 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 	// Adicionar middleware de recovery personalizado
 	router.Use(gin.Recovery())
 	// Adicionar nosso middleware de logging com zerolog
-	router.Use(ZerologMiddleware())
+	router.Use(middlewares.ZerologMiddleware())
 
 	// Configurar proxies confiáveis para remover warning
 	err := router.SetTrustedProxies(cfg.Server.TrustedProxies)

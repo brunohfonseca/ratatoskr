@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/brunohfonseca/ratatoskr/internal/database"
+	mongo2 "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongo"
 	"github.com/brunohfonseca/ratatoskr/internal/models"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,7 +22,7 @@ func NewEndpointService() *EndpointService {
 
 // getCollection retorna a collection de endpoints
 func (s *EndpointService) getCollection() *mongo.Collection {
-	return database.MongoClient.Database("ratatoskr").Collection("endpoints")
+	return mongo2.MongoClient.Database("ratatoskr").Collection("endpoints")
 }
 
 // CreateEndpoint cria um novo endpoint

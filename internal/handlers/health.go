@@ -3,7 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/brunohfonseca/ratatoskr/internal/database"
+	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongo"
+	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
@@ -20,8 +21,8 @@ func HealthCheck(c *gin.Context) {
 // ReadinessCheck verifica se a aplicação está pronta para receber tráfego
 func ReadinessCheck(c *gin.Context) {
 	// Verificar conexões com dependências
-	mongoHealthy, mongoStatus, mongoErr := database.CheckMongoDBHealth()
-	redisHealthy, redisStatus, redisErr := database.CheckRedisHealth()
+	mongoHealthy, mongoStatus, mongoErr := mongo.CheckMongoDBHealth()
+	redisHealthy, redisStatus, redisErr := redis.CheckRedisHealth()
 
 	// Determinar status geral da aplicação
 	overallHealthy := mongoHealthy && redisHealthy

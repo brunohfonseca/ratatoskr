@@ -7,8 +7,6 @@ services:
     volumes:
       - .docker/data/mongo:/data/db
     restart: unless-stopped
-    environment:
-      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
 
   redis:
     image: redis:alpine

@@ -52,8 +52,8 @@ type Endpoint struct {
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 }
 
-// EndPointHealthHistory - Para manter histórico de checks
-type EndPointHealthHistory struct {
+// EndpointHealthHistory - Para manter histórico de checks
+type EndpointHealthHistory struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	EndPointID   primitive.ObjectID `bson:"endpoint_id" json:"endpoint_id" index:""`
 	Status       EndpointStatus     `bson:"status" json:"status" index:""`
