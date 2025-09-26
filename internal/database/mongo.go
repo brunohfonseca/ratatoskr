@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -23,6 +24,7 @@ func ConnectMongoDB(uri string) {
 	if err != nil {
 		log.Fatal("Erro ao conectar no MongoDB:", err)
 	}
+	fmt.Println("Connected to MongoDB")
 
 	MongoClient = client
 }

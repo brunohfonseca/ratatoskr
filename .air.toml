@@ -3,7 +3,7 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  args_bin = ["--config", "config.yml"]
+  args_bin = ["--config", "config/config.yml"]
   bin = "./tmp/main"
   cmd = "go build -o ./tmp/main ./cmd/api"
   delay = 1000

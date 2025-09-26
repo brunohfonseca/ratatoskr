@@ -20,9 +20,9 @@ func ConnectRedis(RedisURL string) {
 	// Create client with parsed options
 	client := redis.NewClient(opts)
 
-	pong, err := client.Ping(ctx).Result()
+	_, err = client.Ping(ctx).Result()
 	if err != nil {
 		log.Fatal("Error connecting to Redis:", err)
 	}
-	fmt.Println("Connected to Redis:", pong)
+	fmt.Println("Connected to Redis")
 }
