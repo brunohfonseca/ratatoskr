@@ -11,6 +11,7 @@ import (
 	zlog "github.com/rs/zerolog/log"
 )
 
+// setupRouter configura o router com middlewares e configurações básicas
 func setupRouter(cfg *config.AppConfig) *gin.Engine {
 	if !cfg.Server.Debug {
 		gin.SetMode(gin.ReleaseMode)
@@ -33,19 +34,9 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 	if err != nil {
 		return nil
 	}
-	ssls := router.Group("/ssl")
-	{
-		ssls.GET("/", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Success",
-			})
-		})
-		//ssls.GET("/certs", handlers.GetSSLHandler)
-		//ssls.POST("/certs", handlers.PostSSLHandler)
-		//ssls.DELETE("/certs/:id", handlers.DeleteSSLHandler)
-		//ssls.PATCH("/certs/:id", handlers.PatchSSLHandler)
-		//ssls.GET("/certs/refresh", handlers.RefreshSSLHandler)
-	}
+
+	// Configurar as rotas
+	setupRoutes(router)
 
 	return router
 }
