@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"net/http"
@@ -15,7 +16,7 @@ import (
 )
 
 func main() {
-	configFile := flag.String("config", "config.yml", "Arquivo de configuração")
+	configFile := flag.String("config", "/app/config.yml", "Arquivo de configuração")
 	flag.Parse()
 
 	_, err := config.LoadConfig(*configFile)
@@ -25,18 +26,18 @@ func main() {
 
 	cfg := config.Get()
 	if cfg == nil {
-		log.Fatal().Msgf("❌ Configuração não carregada: %v", err)
+		log.Fatal().Msg("❌ Configuração não carregada")
+		return
 	}
 
 	config.SetupLogs()
 	log.Info().Msgf("🚀 Iniciando o serviço com o arquivo de configuração: %s", *configFile)
+	database.ConnectRedis(cfg.Redis.RedisURL)
 	database.ConnectMongoDB(cfg.Database.MongoURL)
 
 	// Registrar models e sincronizar automaticamente
 	database.RegisterAllModels()
 	database.AutoSync(cfg.Database.MongoURL)
-
-	database.ConnectRedis(cfg.Redis.RedisURL)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -45,11 +46,12 @@ func main() {
 	// inicia servidor em goroutine
 	go func() {
 		if cfg.Server.SSL.Enabled {
-			if err := srv.ListenAndServeTLS(cfg.Server.SSL.Cert, cfg.Server.SSL.Key); err != nil && err != http.ErrServerClosed {
+			if err := srv.ListenAndServeTLS(cfg.Server.SSL.Cert, cfg.Server.SSL.Key); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Fatal().Msgf("❌ Erro ao iniciar servidor SSL: %v", err)
 			}
 
 		} else {
-			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Fatal().Msgf("❌ Erro ao iniciar servidor: %v", err)
 			}
 		}
@@ -62,8 +64,8 @@ func main() {
 	fmt.Println("") //Quebra de Linha no CTRL+C
 	log.Info().Msg("🛑 Sinal de parada recebido. Finalizando aplicação...")
 
-	database.DisconnectMongoDB()
 	database.DisconnectRedis()
+	database.DisconnectMongoDB()
 
 	log.Info().Msg("✅ Aplicação finalizada com sucesso!")
 }
