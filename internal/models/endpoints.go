@@ -6,15 +6,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type ServiceStatus string
+type EndpointStatus string
 
 const (
-	StatusOnline  ServiceStatus = "online"
-	StatusOffline ServiceStatus = "offline"
-	StatusUnknown ServiceStatus = "unknown"
+	StatusOnline  EndpointStatus = "online"
+	StatusOffline EndpointStatus = "offline"
+	StatusUnknown EndpointStatus = "unknown"
 )
 
-type Service struct {
+type Endpoint struct {
 	ID     primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Name   string             `bson:"name" json:"name" index:"unique"`
 	Domain string             `bson:"domain" json:"domain" index:""`
@@ -35,9 +35,9 @@ type Service struct {
 	} `bson:"ssl_data,omitempty" json:"ssl_data,omitempty"`
 
 	// Current Status
-	Status       ServiceStatus `bson:"status" json:"status" index:""`
-	ResponseTime time.Duration `bson:"response_time,omitempty" json:"response_time,omitempty"`
-	ErrorMessage string        `bson:"error_message,omitempty" json:"error_message,omitempty"`
+	Status       EndpointStatus `bson:"status" json:"status" index:""`
+	ResponseTime time.Duration  `bson:"response_time,omitempty" json:"response_time,omitempty"`
+	ErrorMessage string         `bson:"error_message,omitempty" json:"error_message,omitempty"`
 
 	// Alert Groups (referência aos grupos de alerta)
 	AlertGroupIDs []primitive.ObjectID `bson:"alert_group_ids,omitempty" json:"alert_group_ids,omitempty"`
@@ -52,11 +52,11 @@ type Service struct {
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 }
 
-// ServiceHealthHistory - Para manter histórico de checks
-type ServiceHealthHistory struct {
+// EndPointHealthHistory - Para manter histórico de checks
+type EndPointHealthHistory struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	ServiceID    primitive.ObjectID `bson:"service_id" json:"service_id" index:""`
-	Status       ServiceStatus      `bson:"status" json:"status" index:""`
+	EndPointID   primitive.ObjectID `bson:"endpoint_id" json:"endpoint_id" index:""`
+	Status       EndpointStatus     `bson:"status" json:"status" index:""`
 	ResponseTime time.Duration      `bson:"response_time,omitempty" json:"response_time,omitempty"`
 	ErrorMessage string             `bson:"error_message,omitempty" json:"error_message,omitempty"`
 	CheckedAt    time.Time          `bson:"checked_at" json:"checked_at" index:"desc" ttl:"120d"`
