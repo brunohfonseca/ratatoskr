@@ -11,7 +11,7 @@ import (
 
 	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/brunohfonseca/ratatoskr/internal/infrastructure"
-	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongo"
+	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
 	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/rs/zerolog/log"
 )
@@ -34,11 +34,7 @@ func main() {
 	config.SetupLogs()
 	log.Info().Msgf("🚀 Iniciando o serviço com o arquivo de configuração: %s", *configFile)
 	redis.ConnectRedis(cfg.Redis.RedisURL)
-	mongo.ConnectMongoDB(cfg.Database.MongoURL)
-
-	// Registrar models e sincronizar automaticamente
-	mongo.RegisterAllModels()
-	mongo.AutoSync(cfg.Database.MongoURL)
+	mongodb.ConnectMongoDB(cfg.Database.MongoURL)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -66,7 +62,7 @@ func main() {
 	log.Info().Msg("🛑 Sinal de parada recebido. Finalizando aplicação...")
 
 	redis.DisconnectRedis()
-	mongo.DisconnectMongoDB()
+	mongodb.DisconnectMongoDB()
 
 	log.Info().Msg("✅ Aplicação finalizada com sucesso!")
 }
