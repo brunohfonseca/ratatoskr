@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,6 +11,7 @@ import (
 	"github.com/brunohfonseca/ratatoskr/internal/api"
 	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/brunohfonseca/ratatoskr/internal/database"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -20,16 +20,16 @@ func main() {
 
 	_, err := config.LoadConfig(*configFile)
 	if err != nil {
-		log.Fatalf("Erro ao carregar config: %v", err)
+		log.Fatal().Msgf("Erro ao carregar config: %v", err)
 	}
 
 	cfg := config.Get()
 	if cfg == nil {
-		log.Fatalf("configuração não carregada: %v", err)
+		log.Fatal().Msgf("configuração não carregada: %v", err)
 	}
 
-	log.Printf("Iniciando o serviço com o arquivo de configuração: %s", *configFile)
-
+	config.SetupLogs()
+	log.Info().Msgf("Iniciando o serviço com o arquivo de configuração: %s", *configFile)
 	database.ConnectMongoDB(cfg.Database.MongoURL)
 	database.ConnectRedis(cfg.Redis.RedisURL)
 
@@ -41,23 +41,24 @@ func main() {
 	go func() {
 		if cfg.Server.SSL.Enabled {
 			if err := srv.ListenAndServeTLS(cfg.Server.SSL.Cert, cfg.Server.SSL.Key); err != nil && err != http.ErrServerClosed {
-				log.Fatalf("erro ao iniciar servidor TLS: %v", err)
+				log.Fatal().Msgf("erro ao iniciar servidor TLS: %v", err)
 			}
 		} else {
 			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				log.Fatalf("erro ao iniciar servidor: %v", err)
+				log.Fatal().Msgf("erro ao iniciar servidor: %v", err)
 			}
 		}
 	}()
 
-	fmt.Println("🚀 Servidor iniciado! Pressione Ctrl+C para finalizar.")
+	log.Info().Msg("🚀 Servidor iniciado! Pressione Ctrl+C para finalizar.")
 
 	// Aguardar sinal de parada
 	<-c
-	fmt.Println("\n🛑 Sinal de parada recebido. Finalizando aplicação...")
+	fmt.Println("") //Quebra de Linha no CTRL+C
+	log.Info().Msg("🛑 Sinal de parada recebido. Finalizando aplicação...")
 
 	database.DisconnectMongoDB()
 	database.DisconnectRedis()
 
-	fmt.Println("✅ Aplicação finalizada com sucesso!")
+	log.Info().Msg("✅ Aplicação finalizada com sucesso!")
 }

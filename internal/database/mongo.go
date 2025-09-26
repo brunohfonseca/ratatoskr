@@ -2,10 +2,9 @@ package database
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -18,14 +17,14 @@ func ConnectMongoDB(uri string) {
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	err = client.Ping(ctx, nil)
 	if err != nil {
-		log.Fatal("Erro ao conectar no MongoDB:", err)
+		log.Fatal().Msgf("Erro ao conectar no MongoDB: %s", err)
 	}
-	fmt.Println("Connected to MongoDB")
+	log.Info().Msg("✅ Connected to MongoDB")
 
 	MongoClient = client
 }
@@ -35,9 +34,9 @@ func DisconnectMongoDB() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if err := MongoClient.Disconnect(ctx); err != nil {
-			log.Printf("Erro ao desconectar do MongoDB: %v", err)
+			log.Fatal().Msgf("Erro ao desconectar do MongoDB: %v", err)
 		} else {
-			fmt.Println("✅ Disconnected from MongoDB")
+			log.Info().Msg("✅ Disconnected from MongoDB")
 		}
 	}
 }

@@ -1,12 +1,12 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 func setupRouter(cfg *config.AppConfig) *gin.Engine {
@@ -52,6 +52,6 @@ func ServerStart(cfg *config.AppConfig) *http.Server {
 		srv.TLSConfig = nil
 	}
 
-	log.Printf("Starting REST API on port %s", srv.Addr)
+	log.Info().Msgf("Starting REST API on port %s", srv.Addr)
 	return srv
 }

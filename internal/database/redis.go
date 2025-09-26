@@ -2,11 +2,10 @@ package database
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog/log"
 )
 
 var RedisClient *redis.Client
@@ -17,25 +16,25 @@ func ConnectRedis(RedisURL string) {
 
 	opts, err := redis.ParseURL(RedisURL)
 	if err != nil {
-		log.Fatal("Error parsing Redis URL:", err)
+		log.Fatal().Msgf("Error parsing Redis URL: %s", err)
 	}
 
 	client := redis.NewClient(opts)
 
 	_, err = client.Ping(ctx).Result()
 	if err != nil {
-		log.Fatal("Error connecting to Redis:", err)
+		log.Fatal().Msgf("Error connecting to Redis: %s", err)
 	}
-	fmt.Println("Connected to Redis")
+	log.Info().Msg("✅ Connected to Redis")
 	RedisClient = client
 }
 
 func DisconnectRedis() {
 	if RedisClient != nil {
 		if err := RedisClient.Close(); err != nil {
-			log.Printf("Erro ao desconectar do Redis: %v", err)
+			log.Fatal().Msgf("Erro ao desconectar do Redis: %v", err)
 		} else {
-			fmt.Println("✅ Disconnected from Redis")
+			log.Info().Msg("✅ Disconnected from Redis")
 		}
 	}
 }
