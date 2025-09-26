@@ -3,56 +3,23 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/brunohfonseca/ratatoskr/internal/models"
-	"github.com/brunohfonseca/ratatoskr/internal/services"
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 )
 
 // ListServices lista todos os endpoints cadastrados
 func ListServices(c *gin.Context) {
-	endpointService := services.NewEndpointService()
-
-	endpoints, err := endpointService.List()
-	if err != nil {
-		log.Error().Err(err).Msg("Erro ao listar endpoints")
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Erro interno do servidor",
-		})
-		return
-	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"endpoints": endpoints,
-		"total":     len(endpoints),
+		"endpoints": 0,
+		"total":     0,
 	})
 }
 
 // CreateService cria um novo endpoint
 func CreateService(c *gin.Context) {
-	var endpoint models.Endpoint
-
-	// Bind JSON do request
-	if err := c.ShouldBindJSON(&endpoint); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Dados inválidos: " + err.Error(),
-		})
-		return
-	}
-
-	// Criar endpoint
-	endpointService := services.NewEndpointService()
-	createdEndpoint, err := endpointService.CreateEndpoint(&endpoint)
-	if err != nil {
-		log.Error().Err(err).Msg("Erro ao criar endpoint")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"endpoint": createdEndpoint,
+		"endpoint": 0,
 		"message":  "Endpoint criado com sucesso",
 	})
 }
@@ -60,61 +27,25 @@ func CreateService(c *gin.Context) {
 // GetService busca um endpoint específico por ID
 func GetService(c *gin.Context) {
 	id := c.Param("id")
-
-	endpointService := services.NewEndpointService()
-	endpoint, err := endpointService.GetByID(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{
-		"endpoint": endpoint,
+		"endpoint": id,
 	})
 }
 
 // UpdateService atualiza um endpoint existente
 func UpdateService(c *gin.Context) {
 	id := c.Param("id")
-	var endpoint models.Endpoint
-
-	if err := c.ShouldBindJSON(&endpoint); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Dados inválidos: " + err.Error(),
-		})
-		return
-	}
-
-	endpointService := services.NewEndpointService()
-	updatedEndpoint, err := endpointService.Update(id, &endpoint)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{
-		"endpoint": updatedEndpoint,
+		"endpoint": id,
 		"message":  "Endpoint atualizado com sucesso",
 	})
 }
 
 // DeleteService remove um endpoint
 func DeleteService(c *gin.Context) {
-	id := c.Param("id")
+	//id := c.Param("id")
 
-	endpointService := services.NewEndpointService()
-	err := endpointService.Delete(id)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
+	// TODO: Implementar health check real
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Endpoint removido com sucesso",
 	})
