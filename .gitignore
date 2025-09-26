@@ -3,3 +3,4 @@
 .docker
 config.yml
 /ssl
+tmp
