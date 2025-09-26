@@ -18,7 +18,7 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 	router := gin.Default()
 
 	// Configurar proxies confiáveis para remover warning
-	err := router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+	err := router.SetTrustedProxies(cfg.Server.TrustedProxies)
 	if err != nil {
 		return nil
 	}

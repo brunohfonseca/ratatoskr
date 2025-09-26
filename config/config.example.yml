@@ -1,6 +1,9 @@
 server:
   port: 8080
   debug: true
+  trusted_proxies:
+    - "127.0.0.1"
+    - "::1"
   ssl:
     enabled: true
     port: 8443
