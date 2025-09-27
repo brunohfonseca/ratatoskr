@@ -6,46 +6,62 @@ import (
 	"time"
 
 	"github.com/brunohfonseca/ratatoskr/internal/entities"
-	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
 	"github.com/brunohfonseca/ratatoskr/internal/repositories"
 	"github.com/gin-gonic/gin"
 )
 
+type EndpointHandler struct {
+	repo repositories.EndpointRepository
+}
+
+func NewEndpointHandler(repo repositories.EndpointRepository) *EndpointHandler {
+	return &EndpointHandler{repo: repo}
+}
+
 // CreateService cria um novo endpoint
-func CreateService(c *gin.Context) {
+func (h *EndpointHandler) CreateService(c *gin.Context) {
 	var e entities.Endpoint
 	if err := c.ShouldBindJSON(&e); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido: " + err.Error()})
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if infra.MongoDatabase == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Banco de dados não inicializado"})
+	// valida campos obrigatórios
+	if e.Name == "" || e.Domain == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Name e Domain são obrigatórios"})
 		return
 	}
 
-	repo := repositories.NewEndpointRepository(infra.MongoDatabase)
-	id, err := repo.Create(ctx, &e)
+	// contexto com timeout baseado no request
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	id, err := h.repo.Create(ctx, &e)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	e.ID = id // garante que o JSON de resposta tem o ID gerado
 	c.JSON(http.StatusCreated, gin.H{
-		"id":      id.Hex(),
-		"message": "Endpoint criado com sucesso",
+		"endpoint": e,
 	})
 }
 
 // ListServices lista todos os endpoints cadastrados
-func ListServices(c *gin.Context) {
+func (h *EndpointHandler) ListServices(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	defer cancel()
+
+	endpoints, err := h.repo.FindAll(ctx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"endpoints": 0,
-		"total":     0,
+		"total":     len(endpoints),
+		"endpoints": endpoints,
 	})
 }
 

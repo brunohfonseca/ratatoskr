@@ -5,12 +5,14 @@ import (
 	"time"
 
 	"github.com/brunohfonseca/ratatoskr/internal/entities"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type EndpointRepository interface {
 	Create(ctx context.Context, e *entities.Endpoint) (primitive.ObjectID, error)
+	FindAll(ctx context.Context) ([]entities.Endpoint, error)
 }
 
 type endpointRepository struct {
@@ -39,4 +41,18 @@ func (r *endpointRepository) Create(ctx context.Context, e *entities.Endpoint) (
 		return primitive.NilObjectID, err
 	}
 	return e.ID, nil
+}
+
+func (r *endpointRepository) FindAll(ctx context.Context) ([]entities.Endpoint, error) {
+	cursor, err := r.col.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var endpoints []entities.Endpoint
+	if err := cursor.All(ctx, &endpoints); err != nil {
+		return nil, err
+	}
+	return endpoints, nil
 }

@@ -18,7 +18,6 @@ type Endpoint struct {
 	ID     primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Name   string             `bson:"name" json:"name"`
 	Domain string             `bson:"domain" json:"domain"`
-	Port   int                `bson:"port,omitempty" json:"port,omitempty"`
 
 	// Basic Health Check
 	Endpoint string `bson:"endpoint,omitempty" json:"endpoint,omitempty"` // e.g., "/health"
@@ -26,7 +25,7 @@ type Endpoint struct {
 	Interval int    `bson:"interval,omitempty" json:"interval,omitempty"` // Default: 5min
 
 	// SSL Configuration
-	CheckSSL bool `bson:"check_ssl,omitempty" json:"check_ssl,omitempty"`
+	CheckSSL bool `bson:"check_ssl" json:"check_ssl"`
 	SSLData  struct {
 		ExpirationDate time.Time `bson:"expiration_date,omitempty" json:"expiration_date,omitempty"`
 		Expired        bool      `bson:"expired" json:"expired"`
