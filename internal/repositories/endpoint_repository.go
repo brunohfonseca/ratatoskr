@@ -13,22 +13,25 @@ type EndpointRepository interface {
 	Create(ctx context.Context, e *entities.Endpoint) (primitive.ObjectID, error)
 }
 
-type endpointRepositoryMongo struct {
+type endpointRepository struct {
 	col *mongo.Collection
 }
 
-func NewEndpointRepositoryMongo(db *mongo.Database) EndpointRepository {
-	return &endpointRepositoryMongo{
+func NewEndpointRepository(db *mongo.Database) EndpointRepository {
+	return &endpointRepository{
 		col: db.Collection("endpoints"),
 	}
 }
 
-func (r *endpointRepositoryMongo) Create(ctx context.Context, e *entities.Endpoint) (primitive.ObjectID, error) {
+func (r *endpointRepository) Create(ctx context.Context, e *entities.Endpoint) (primitive.ObjectID, error) {
 	now := time.Now().UTC()
+
 	if e.ID.IsZero() {
 		e.ID = primitive.NewObjectID()
 	}
-	e.CreatedAt = now
+	if e.CreatedAt.IsZero() {
+		e.CreatedAt = now
+	}
 	e.UpdatedAt = now
 
 	_, err := r.col.InsertOne(ctx, e)

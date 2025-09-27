@@ -1,10 +1,44 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
+	"time"
 
+	"github.com/brunohfonseca/ratatoskr/internal/entities"
+	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
+	"github.com/brunohfonseca/ratatoskr/internal/repositories"
 	"github.com/gin-gonic/gin"
 )
+
+// CreateService cria um novo endpoint
+func CreateService(c *gin.Context) {
+	var e entities.Endpoint
+	if err := c.ShouldBindJSON(&e); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido: " + err.Error()})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if infra.MongoDatabase == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Banco de dados não inicializado"})
+		return
+	}
+
+	repo := repositories.NewEndpointRepository(infra.MongoDatabase)
+	id, err := repo.Create(ctx, &e)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"id":      id.Hex(),
+		"message": "Endpoint criado com sucesso",
+	})
+}
 
 // ListServices lista todos os endpoints cadastrados
 func ListServices(c *gin.Context) {
@@ -12,14 +46,6 @@ func ListServices(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"endpoints": 0,
 		"total":     0,
-	})
-}
-
-// CreateService cria um novo endpoint
-func CreateService(c *gin.Context) {
-	c.JSON(http.StatusCreated, gin.H{
-		"endpoint": 0,
-		"message":  "Endpoint criado com sucesso",
 	})
 }
 
