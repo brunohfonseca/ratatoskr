@@ -7,9 +7,12 @@ import (
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 )
 
 var MongoClient *mongo.Client
+var MongoDatabase *mongo.Database
+var MongoDatabaseName string
 
 func ConnectMongoDB(uri string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -27,6 +30,19 @@ func ConnectMongoDB(uri string) {
 	log.Info().Msg("✅ Connected to MongoDB")
 
 	MongoClient = client
+
+	// Extrair e armazenar o database padrão (se presente) para reuso
+	cs, err := connstring.ParseAndValidate(uri)
+	if err != nil {
+		log.Warn().Err(err).Msg("Não foi possível analisar a connection string do MongoDB para extrair o database")
+		return
+	}
+	MongoDatabaseName = cs.Database
+	if MongoDatabaseName == "" {
+		log.Warn().Msg("Nenhum database especificado na connection string do MongoDB. Defina o database em database.mongo_url")
+		return
+	}
+	MongoDatabase = MongoClient.Database(MongoDatabaseName)
 }
 
 func DisconnectMongoDB() {

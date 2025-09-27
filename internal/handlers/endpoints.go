@@ -7,9 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/x/mongo/driver/connstring"
 
-	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/brunohfonseca/ratatoskr/internal/entities"
 	mongodb "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
 )
@@ -93,18 +91,12 @@ func CreateService(c *gin.Context) {
 	}
 	ep.Authentication = req.Authentication
 
-	// Obter DB/coleção a partir da URL do Mongo configurada
-	cfg := config.Get()
-	if cfg == nil || cfg.Database.MongoURL == "" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuração do MongoDB ausente"})
+	// Usar a conexão global já inicializada
+	if mongodb.MongoDatabase == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "MongoDB não inicializado"})
 		return
 	}
-	cs, err := connstring.ParseAndValidate(cfg.Database.MongoURL)
-	if err != nil || cs.Database == "" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuração do MongoDB inválida: defina o database na URL"})
-		return
-	}
-	coll := mongodb.MongoClient.Database(cs.Database).Collection("endpoints")
+	coll := mongodb.MongoDatabase.Collection("endpoints")
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
