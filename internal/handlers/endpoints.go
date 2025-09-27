@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/brunohfonseca/ratatoskr/internal/entities"
@@ -23,22 +24,9 @@ func ListServices(c *gin.Context) {
 
 // CreateService cria um novo endpoint
 func CreateService(c *gin.Context) {
-	// Payload de criação (simples, com defaults de timeout/intervalo)
-	type createEndpointRequest struct {
-		Name            string      `json:"name" binding:"required"`
-		Domain          string      `json:"domain" binding:"required"`
-		Port            int         `json:"port"`
-		Endpoint        string      `json:"endpoint"`
-		TimeoutSeconds  int         `json:"timeout_seconds"`
-		IntervalSeconds int         `json:"interval_seconds"`
-		CheckSSL        bool        `json:"check_ssl"`
-		Authentication  interface{} `json:"authentication"`
-		AlertGroupIDs   []string    `json:"alert_group_ids"`
-		Enabled         *bool       `json:"enabled"`
-	}
-
-	var req createEndpointRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	// Ler o corpo uma única vez (permite múltiplos binds: map + entidade)
+	var body map[string]interface{}
+	if err := c.ShouldBindBodyWith(&body, binding.JSON); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Payload inválido",
 			"details": err.Error(),
@@ -46,52 +34,42 @@ func CreateService(c *gin.Context) {
 		return
 	}
 
-	// Defaults
-	timeout := time.Duration(req.TimeoutSeconds) * time.Second
-	if timeout == 0 {
-		timeout = 30 * time.Second
-	}
-	interval := time.Duration(req.IntervalSeconds) * time.Second
-	if interval == 0 {
-		interval = 5 * time.Minute
-	}
-	enabled := true
-	if req.Enabled != nil {
-		enabled = *req.Enabled
+	// Bind direto na sua entidade
+	var ep entities.Endpoint
+	if err := c.ShouldBindBodyWith(&ep, binding.JSON); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Payload inválido",
+			"details": err.Error(),
+		})
+		return
 	}
 
-	// Converter AlertGroupIDs
-	var alertIDs []primitive.ObjectID
-	for _, s := range req.AlertGroupIDs {
-		id, err := primitive.ObjectIDFromHex(s)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "alert_group_ids contém ID inválido",
-				"details": s,
-			})
-			return
-		}
-		alertIDs = append(alertIDs, id)
+	// Validações mínimas
+	if ep.Name == "" || ep.Domain == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Campos obrigatórios: name, domain"})
+		return
 	}
 
-	// Montar entidade para persistência
-	ep := entities.Endpoint{
-		Name:          req.Name,
-		Domain:        req.Domain,
-		Port:          req.Port,
-		Endpoint:      req.Endpoint,
-		Timeout:       timeout,
-		Interval:      interval,
-		CheckSSL:      req.CheckSSL,
-		Status:        entities.StatusUnknown,
-		Enabled:       enabled,
-		CreatedAt:     time.Now().UTC(),
-		UpdatedAt:     time.Now().UTC(),
-		AlertGroupIDs: alertIDs,
+	// Compatibilidade: aceitar *_seconds (em segundos) e converter para time.Duration
+	if v, ok := body["timeout_seconds"].(float64); ok && v > 0 {
+		ep.Timeout = time.Duration(int64(v)) * time.Second
 	}
-	ep.Authentication = req.Authentication
+	if v, ok := body["interval_seconds"].(float64); ok && v > 0 {
+		ep.Interval = time.Duration(int64(v)) * time.Second
+	}
 
-	// Usar a conexão global já inicializada
+	// Defaults controlados pelo servidor
+	if ep.Timeout == 0 {
+		ep.Timeout = 30 * time.Second
+	}
+	if ep.Interval == 0 {
+		ep.Interval = 5 * time.Minute
+	}
+	ep.Status = entities.StatusUnknown
+	ep.CreatedAt = time.Now().UTC()
+	ep.UpdatedAt = time.Now().UTC()
+
+	// Inserção no Mongo usando a conexão global
 	if mongodb.MongoDatabase == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "MongoDB não inicializado"})
 		return
