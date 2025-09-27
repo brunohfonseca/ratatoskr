@@ -11,8 +11,8 @@ import (
 
 	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/brunohfonseca/ratatoskr/internal/infrastructure"
-	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
-	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
+	mongodb "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
+	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/rs/zerolog/log"
 )
 

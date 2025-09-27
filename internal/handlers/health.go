@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
-	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
+	mongodb "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
+	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
