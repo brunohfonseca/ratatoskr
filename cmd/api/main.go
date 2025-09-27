@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/brunohfonseca/ratatoskr/internal/api"
 	"github.com/brunohfonseca/ratatoskr/internal/config"
-	"github.com/brunohfonseca/ratatoskr/internal/infrastructure"
 	mongodb "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
 	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/rs/zerolog/log"
@@ -39,7 +39,7 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
-	srv := infrastructure.ServerStart(cfg)
+	srv := api.ServerStart(cfg)
 	// inicia servidor em goroutine
 	go func() {
 		if cfg.Server.SSL.Enabled {

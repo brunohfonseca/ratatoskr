@@ -1,16 +1,9 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/brunohfonseca/ratatoskr/internal/entities"
-	mongodb "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
 )
 
 // ListServices lista todos os endpoints cadastrados
@@ -24,75 +17,8 @@ func ListServices(c *gin.Context) {
 
 // CreateService cria um novo endpoint
 func CreateService(c *gin.Context) {
-	// Ler o corpo uma única vez (permite múltiplos binds: map + entidade)
-	var body map[string]interface{}
-	if err := c.ShouldBindBodyWith(&body, binding.JSON); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Payload inválido",
-			"details": err.Error(),
-		})
-		return
-	}
-
-	// Bind direto na sua entidade
-	var ep entities.Endpoint
-	if err := c.ShouldBindBodyWith(&ep, binding.JSON); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":   "Payload inválido",
-			"details": err.Error(),
-		})
-		return
-	}
-
-	// Validações mínimas
-	if ep.Name == "" || ep.Domain == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Campos obrigatórios: name, domain"})
-		return
-	}
-
-	// Compatibilidade: aceitar *_seconds (em segundos) e converter para time.Duration
-	if v, ok := body["timeout_seconds"].(float64); ok && v > 0 {
-		ep.Timeout = time.Duration(int64(v)) * time.Second
-	}
-	if v, ok := body["interval_seconds"].(float64); ok && v > 0 {
-		ep.Interval = time.Duration(int64(v)) * time.Second
-	}
-
-	// Defaults controlados pelo servidor
-	if ep.Timeout == 0 {
-		ep.Timeout = 30 * time.Second
-	}
-	if ep.Interval == 0 {
-		ep.Interval = 5 * time.Minute
-	}
-	ep.Status = entities.StatusUnknown
-	ep.CreatedAt = time.Now().UTC()
-	ep.UpdatedAt = time.Now().UTC()
-
-	// Inserção no Mongo usando a conexão global
-	if mongodb.MongoDatabase == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "MongoDB não inicializado"})
-		return
-	}
-	coll := mongodb.MongoDatabase.Collection("endpoints")
-
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	defer cancel()
-
-	res, err := coll.InsertOne(ctx, ep)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "Erro ao criar endpoint",
-			"details": err.Error(),
-		})
-		return
-	}
-	if oid, ok := res.InsertedID.(primitive.ObjectID); ok {
-		ep.ID = oid
-	}
-
 	c.JSON(http.StatusCreated, gin.H{
-		"endpoint": ep,
+		"endpoint": 0,
 		"message":  "Endpoint criado com sucesso",
 	})
 }
