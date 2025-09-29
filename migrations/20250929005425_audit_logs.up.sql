@@ -12,26 +12,21 @@ CREATE TABLE audit_log (
 -- Função para auditoria de endpoints (pode ser adaptada para outras tabelas)
 CREATE OR REPLACE FUNCTION log_endpoint_changes()
 RETURNS TRIGGER AS $$
-DECLARE
-acting_user INT;
 BEGIN
-    -- pega usuário atual da sessão (setado pela app após login)
-    acting_user := current_setting('app.current_user', true)::int;
-
     IF TG_OP = 'UPDATE' THEN
         INSERT INTO audit_log (table_name, record_id, operation, changed_data, user_id)
-        VALUES ('endpoints', NEW.id::text, 'UPDATE', row_to_json(NEW)::jsonb, acting_user);
-RETURN NEW;
-ELSIF TG_OP = 'INSERT' THEN
+        VALUES ('endpoints', NEW.id::text, 'UPDATE', row_to_json(NEW)::jsonb, NEW.last_modified_by);
+        RETURN NEW;
+    ELSIF TG_OP = 'INSERT' THEN
         INSERT INTO audit_log (table_name, record_id, operation, changed_data, user_id)
-        VALUES ('endpoints', NEW.id::text, 'INSERT', row_to_json(NEW)::jsonb, acting_user);
-RETURN NEW;
-ELSIF TG_OP = 'DELETE' THEN
+        VALUES ('endpoints', NEW.id::text, 'INSERT', row_to_json(NEW)::jsonb, NEW.last_modified_by);
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO audit_log (table_name, record_id, operation, changed_data, user_id)
-        VALUES ('endpoints', OLD.id::text, 'DELETE', row_to_json(OLD)::jsonb, acting_user);
-RETURN OLD;
-END IF;
-RETURN NULL;
+        VALUES ('endpoints', OLD.id::text, 'DELETE', row_to_json(OLD)::jsonb, OLD.last_modified_by);
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
