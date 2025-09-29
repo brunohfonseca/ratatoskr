@@ -21,7 +21,7 @@ func CreateService(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
-	db := postgres.Postgres
+	db := postgres.PostgresConn
 	sql := "INSERT INTO endpoints (name, uuid, domain, path, check_ssl) VALUES ($1, $2, $3, $4, $5) RETURNING id"
 	err = db.QueryRow(sql,
 		endpoint.Name,

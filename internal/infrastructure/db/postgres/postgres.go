@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var Postgres *sql.DB
+var PostgresConn *sql.DB
 
 func ConnectPostgres(uri string) {
 	db, err := sql.Open("pgx", uri)
@@ -22,11 +22,11 @@ func ConnectPostgres(uri string) {
 	}
 
 	log.Info().Msg("✅ Connected to Postgres (pgx)")
-	Postgres = db
+	PostgresConn = db
 }
 
 func CheckPostgresHealth() (bool, string, error) {
-	if Postgres == nil {
+	if PostgresConn == nil {
 		return false, "disconnected", nil
 	}
 
@@ -34,7 +34,7 @@ func CheckPostgresHealth() (bool, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	if err := Postgres.PingContext(ctx); err != nil {
+	if err := PostgresConn.PingContext(ctx); err != nil {
 		return false, "error", err
 	}
 
@@ -42,8 +42,8 @@ func CheckPostgresHealth() (bool, string, error) {
 }
 
 func DisconnectPostgres() {
-	if Postgres != nil {
-		if err := Postgres.Close(); err != nil {
+	if PostgresConn != nil {
+		if err := PostgresConn.Close(); err != nil {
 			log.Error().Msgf("⚠️ erro ao fechar conexão com Postgres: %v", err)
 		} else {
 			log.Info().Msg("✅ Disconnected from Postgres")

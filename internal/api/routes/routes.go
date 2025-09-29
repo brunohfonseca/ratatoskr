@@ -20,5 +20,7 @@ func setupAPIv1Routes(router *gin.Engine) {
 		setupNotificationsRoutes(api)
 		// Health routes - health check
 		setupHealthRoutes(api)
+		// Users routes - configuração de usuários
+		setupUsersRoutes(api)
 	}
 }
