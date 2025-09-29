@@ -1,5 +1,5 @@
 -- Enum para status das checagens
-CREATE TYPE check_status AS ENUM ('ok', 'down', 'ssl_expired', 'timeout', 'error');
+CREATE TYPE check_status AS ENUM ('ok', 'down', 'timeout', 'error', 'unknown');
 CREATE TYPE alert_channel_type AS ENUM ('slack', 'telegram', 'email');
 CREATE TYPE endpoint_ssl_status AS ENUM ('ok', 'warning', 'expired');
 
@@ -15,7 +15,6 @@ CREATE TABLE users (
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
-
 
 -- Grupos de alerta
 CREATE TABLE alert_groups (
@@ -50,6 +49,7 @@ CREATE TABLE endpoints (
     path VARCHAR(30) DEFAULT '/',
     check_ssl BOOLEAN DEFAULT FALSE,
     enabled BOOLEAN DEFAULT TRUE,
+    status check_status NOT NULL DEFAULT 'ok',
     expected_response_code INT,
     response_body VARCHAR(300),
     response_time_ms INT,

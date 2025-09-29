@@ -59,19 +59,49 @@ func CreateService(c *gin.Context) {
 
 // ListServices lista todos os endpoints cadastrados
 func ListServices(c *gin.Context) {
-	//ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	//defer cancel()
-	//
-	//endpoints, err := h.repo.FindAll(ctx)
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	//	return
-	//}
-	//
-	//c.JSON(http.StatusOK, gin.H{
-	//	"total":     len(endpoints),
-	//	"endpoints": endpoints,
-	//})
+	var endpoints []entities.Endpoint
+
+	db := postgres.PostgresConn
+	sql := "SELECT id, uuid, name, domain, path, check_ssl, last_modified_by FROM endpoints"
+	rows, err := db.Query(sql)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer rows.Close()
+
+	// Iterar sobre as rows e popular o slice
+	for rows.Next() {
+		var endpoint entities.Endpoint
+		var lastModifiedBy *int
+
+		err := rows.Scan(
+			&endpoint.ID,
+			&endpoint.UUID,
+			&endpoint.Name,
+			&endpoint.Domain,
+			&endpoint.EndpointPath,
+			&endpoint.CheckSSL,
+			&lastModifiedBy,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		endpoints = append(endpoints, endpoint)
+	}
+
+	// Verificar se houve erro durante a iteração
+	if err = rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"total":     len(endpoints),
+		"endpoints": endpoints,
+	})
 }
 
 // GetService busca um endpoint específico por ID
