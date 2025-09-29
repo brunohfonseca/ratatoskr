@@ -60,6 +60,14 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 		return nil, errors.New("token inválido")
 	}
 
+	// Validar campos obrigatórios
+	if claims.UserID == 0 {
+		return nil, errors.New("token inválido: campo 'id' ausente ou inválido")
+	}
+	if claims.Email == "" {
+		return nil, errors.New("token inválido: campo 'email' ausente")
+	}
+
 	return claims, nil
 }
 
