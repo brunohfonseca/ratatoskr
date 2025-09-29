@@ -33,13 +33,12 @@ CREATE TABLE endpoints (
     uuid UUID,
     name TEXT NOT NULL,
     domain TEXT NOT NULL,
-    port INT DEFAULT 80,
     path TEXT DEFAULT '/',
     timeout_seconds INT DEFAULT 30,
     interval_seconds INT DEFAULT 300,
     check_ssl BOOLEAN DEFAULT FALSE,
     enabled BOOLEAN DEFAULT TRUE,
-    alert_group_id INT NOT NULL REFERENCES alert_groups(id) ON DELETE RESTRICT,
+    alert_group_id INT REFERENCES alert_groups(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );

@@ -28,7 +28,7 @@ type Endpoint struct {
 	ResponseTime int            `json:"response_time,omitempty"`
 	ErrorMessage string         `json:"error_message,omitempty"`
 	// Alert Groups (referência aos grupos de alerta)
-	AlertGroupID int `json:"alert_group_id,omitempty"`
+	AlertGroupID *int `json:"alert_group_id,omitempty"`
 	// Control Fields
 	Enabled   bool      `json:"enabled"`
 	LastCheck time.Time `json:"last_check,omitempty"`
