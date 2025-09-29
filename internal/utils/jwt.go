@@ -10,10 +10,10 @@ import (
 var jwtSecret = []byte("your-secret-key-change-this-in-production") // TODO: mover para config
 
 type Claims struct {
-	ID       int    `json:"id"`
+	UserID   int    `json:"id"`
 	UserUUID string `json:"uuid"`
 	Email    string `json:"email"`
-	jwt.RegisteredClaims
+	*jwt.RegisteredClaims
 }
 
 // GenerateJWT gera um token JWT para o usuário
@@ -21,10 +21,10 @@ func GenerateJWT(id int, uuid, email string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour) // Token válido por 24h
 
 	claims := &Claims{
-		ID:       id,
+		UserID:   id,
 		UserUUID: uuid,
 		Email:    email,
-		RegisteredClaims: jwt.RegisteredClaims{
+		RegisteredClaims: &jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "ratatoskr",

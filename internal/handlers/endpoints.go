@@ -17,18 +17,40 @@ func CreateService(c *gin.Context) {
 		return
 	}
 
+	// Extrair user_id do contexto (colocado pelo middleware JWT)
+	userIDInterface, exists := c.Get("id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
+		return
+	}
+
+	// Converter para int (JWT numbers vêm como float64 por padrão)
+	var userID int
+	switch v := userIDInterface.(type) {
+	case int:
+		userID = v
+	case float64:
+		userID = int(v)
+	default:
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ID de usuário inválido"})
+		return
+	}
+
 	v7, err := uuid.NewV7()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+
 	db := postgres.PostgresConn
-	sql := "INSERT INTO endpoints (name, uuid, domain, path, check_ssl) VALUES ($1, $2, $3, $4, $5) RETURNING id"
+	sql := "INSERT INTO endpoints (name, uuid, domain, path, check_ssl, last_modified_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
 	err = db.QueryRow(sql,
 		endpoint.Name,
 		v7,
 		endpoint.Domain,
 		endpoint.EndpointPath,
 		endpoint.CheckSSL,
+		userID,
 	).Scan(&endpoint.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
