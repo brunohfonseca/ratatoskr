@@ -19,10 +19,12 @@ func CreateUser(c *gin.Context) {
 	v7, err := uuid.NewV7()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 	db := postgres.PostgresConn
 	sql := "INSERT INTO users (uuid, full_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id"
@@ -34,9 +36,11 @@ func CreateUser(c *gin.Context) {
 	).Scan(&user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "ok",
+		"id":      user.ID,
 		"uuid":    v7,
 		"email":   user.Email,
 	})

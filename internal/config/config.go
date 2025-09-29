@@ -34,7 +34,6 @@ type AppConfig struct {
 		} `yaml:"ssl"`
 	} `yaml:"server"`
 	Database struct {
-		MongoURL    string `yaml:"mongo_url"`
 		PostgresURL string `yaml:"postgres_url"`
 	} `yaml:"database"`
 	Redis struct {
@@ -63,7 +62,7 @@ func LoadYamlConfig(path string) (*AppConfig, error) {
 		return nil, err
 	}
 
-	if cfg.Database.MongoURL == "" || cfg.Redis.RedisURL == "" {
+	if cfg.Database.PostgresURL == "" || cfg.Redis.RedisURL == "" {
 		return nil, errors.New("missing required variables in config")
 	}
 

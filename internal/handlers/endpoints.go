@@ -24,14 +24,8 @@ func CreateService(c *gin.Context) {
 		return
 	}
 
-	// Converter para int (JWT numbers vêm como float64 por padrão)
-	var userID int
-	switch v := userIDInterface.(type) {
-	case int:
-		userID = v
-	case float64:
-		userID = int(v)
-	default:
+	userID, ok := userIDInterface.(int)
+	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "ID de usuário inválido"})
 		return
 	}
