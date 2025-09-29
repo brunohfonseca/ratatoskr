@@ -1,11 +1,8 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
-	"time"
 
-	"github.com/brunohfonseca/ratatoskr/internal/entities"
 	"github.com/brunohfonseca/ratatoskr/internal/repositories"
 	"github.com/gin-gonic/gin"
 )
@@ -19,50 +16,50 @@ func NewEndpointHandler(repo repositories.EndpointRepository) *EndpointHandler {
 }
 
 // CreateService cria um novo endpoint
-func (h *EndpointHandler) CreateService(c *gin.Context) {
-	var e entities.Endpoint
-	if err := c.ShouldBindJSON(&e); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido: " + err.Error()})
-		return
-	}
-
-	// valida campos obrigatórios
-	if e.Name == "" || e.Domain == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Name e Domain são obrigatórios"})
-		return
-	}
-
-	// contexto com timeout baseado no request
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	defer cancel()
-
-	id, err := h.repo.Create(ctx, &e)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	e.ID = id // garante que o JSON de resposta tem o ID gerado
-	c.JSON(http.StatusCreated, gin.H{
-		"endpoint": e,
-	})
+func CreateService(c *gin.Context) {
+	//var e entities.Endpoint
+	//if err := c.ShouldBindJSON(&e); err != nil {
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido: " + err.Error()})
+	//	return
+	//}
+	//
+	//// valida campos obrigatórios
+	//if e.Name == "" || e.Domain == "" {
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": "Name e Domain são obrigatórios"})
+	//	return
+	//}
+	//
+	//// contexto com timeout baseado no request
+	//ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	//defer cancel()
+	//
+	//id, err := h.repo.Create(ctx, &e)
+	//if err != nil {
+	//	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	//	return
+	//}
+	//
+	//e.ID = id // garante que o JSON de resposta tem o ID gerado
+	//c.JSON(http.StatusCreated, gin.H{
+	//	"endpoint": e,
+	//})
 }
 
 // ListServices lista todos os endpoints cadastrados
-func (h *EndpointHandler) ListServices(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	defer cancel()
-
-	endpoints, err := h.repo.FindAll(ctx)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"total":     len(endpoints),
-		"endpoints": endpoints,
-	})
+func ListServices(c *gin.Context) {
+	//ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+	//defer cancel()
+	//
+	//endpoints, err := h.repo.FindAll(ctx)
+	//if err != nil {
+	//	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	//	return
+	//}
+	//
+	//c.JSON(http.StatusOK, gin.H{
+	//	"total":     len(endpoints),
+	//	"endpoints": endpoints,
+	//})
 }
 
 // GetService busca um endpoint específico por ID

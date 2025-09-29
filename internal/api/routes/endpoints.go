@@ -9,14 +9,12 @@ import (
 
 // setupServicesRoutes configura rotas relacionadas aos serviços
 func setupServicesRoutes(api *gin.RouterGroup) {
-	repo := repositories.NewEndpointRepository(infra.MongoDatabase)
-	h := handlers.NewEndpointHandler(repo)
 
 	endpoints := api.Group("/endpoints")
 	{
 		// CRUD básico de serviços
-		endpoints.POST("/", h.CreateService)
-		endpoints.GET("/", h.ListServices)
+		endpoints.POST("/", handlers.CreateService)
+		endpoints.GET("/", handlers.ListServices)
 		endpoints.GET("/:id", handlers.GetService)
 		endpoints.PUT("/:id", handlers.UpdateService)
 		endpoints.DELETE("/:id", handlers.DeleteService)
