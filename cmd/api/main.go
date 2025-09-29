@@ -32,6 +32,7 @@ func main() {
 		return
 	}
 
+	//Executa as migrations
 	err = postgres.Migrate(cfg.Database.PostgresURL)
 	if err != nil {
 		log.Fatal().Msgf("❌ Erro ao executar migrations no banco de dados: %v", err)
