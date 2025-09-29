@@ -15,14 +15,14 @@ const (
 )
 
 type Endpoint struct {
-	ID     primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Name   string             `bson:"name" json:"name"`
-	Domain string             `bson:"domain" json:"domain"`
+	ID     int    `bson:"_id,omitempty" json:"id,omitempty"`
+	Name   string `bson:"name" json:"name"`
+	Domain string `bson:"domain" json:"domain"`
 
 	// Basic Health Check
-	Endpoint string `bson:"endpoint,omitempty" json:"endpoint,omitempty"` // e.g., "/health"
-	Timeout  int    `bson:"timeout,omitempty" json:"timeout,omitempty"`   // Default: 30s
-	Interval int    `bson:"interval,omitempty" json:"interval,omitempty"` // Default: 5min
+	EndpointPath string `bson:"endpoint,omitempty" json:"endpoint,omitempty"` // e.g., "/health"
+	Timeout      int    `bson:"timeout,omitempty" json:"timeout,omitempty"`   // Default: 30s
+	Interval     int    `bson:"interval,omitempty" json:"interval,omitempty"` // Default: 5min
 
 	// SSL Configuration
 	CheckSSL bool `bson:"check_ssl" json:"check_ssl"`

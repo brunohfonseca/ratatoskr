@@ -1,10 +1,12 @@
 -- Enum para status das checagens
 CREATE TYPE check_status AS ENUM ('ok', 'down', 'ssl_expired', 'timeout', 'error');
+CREATE TYPE alert_channel_type AS ENUM ('slack', 'telegram', 'email');
+CREATE TYPE endpoint_ssl_status AS ENUM ('ok', 'warning', 'expired');
 
 -- Grupos de alerta
 CREATE TABLE alert_groups (
     id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
+    name VARCHAR(50) NOT NULL,
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT now()
 );
@@ -12,9 +14,9 @@ CREATE TABLE alert_groups (
 -- Canais (slack, telegram, etc.)
 CREATE TABLE alert_channels (
     id SERIAL PRIMARY KEY,
-    type TEXT NOT NULL,      -- slack, telegram, email
-    name TEXT NOT NULL,
-    config JSONB NOT NULL,   -- {"token":"...","chat_id":"..."}
+    type alert_channel_type NOT NULL,      -- slack, telegram, email
+    name VARCHAR(50) NOT NULL,
+    config JSONB NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -34,24 +36,33 @@ CREATE TABLE sent_alerts (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
-
 -- Endpoints monitorados
 CREATE TABLE endpoints (
-   id SERIAL PRIMARY KEY,
-   name TEXT NOT NULL,
-   domain TEXT NOT NULL,
-   port INT DEFAULT 80,
-   path TEXT DEFAULT '/',
-   timeout_seconds INT DEFAULT 30,
-   interval_seconds INT DEFAULT 300,           -- intervalo de healthcheck
-   ssl_check_interval_seconds INT DEFAULT 43200, -- ex.: 12h
-   check_ssl BOOLEAN DEFAULT FALSE,
-   enabled BOOLEAN DEFAULT TRUE,
-   alert_group_id INT NOT NULL REFERENCES alert_groups(id) ON DELETE RESTRICT,
-   created_at TIMESTAMPTZ DEFAULT now(),
-   updated_at TIMESTAMPTZ DEFAULT now()
+    id SERIAL PRIMARY KEY,
+    uuid UUID DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    domain TEXT NOT NULL,
+    port INT DEFAULT 80,
+    path TEXT DEFAULT '/',
+    timeout_seconds INT DEFAULT 30,
+    interval_seconds INT DEFAULT 300,
+    check_ssl BOOLEAN DEFAULT FALSE,
+    enabled BOOLEAN DEFAULT TRUE,
+    alert_group_id INT NOT NULL REFERENCES alert_groups(id) ON DELETE RESTRICT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+CREATE TABLE endpoint_ssl (
+    id SERIAL PRIMARY KEY,
+    endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
+    expiration_date TIMESTAMPTZ NOT NULL,
+    issuer TEXT NOT NULL,
+    status endpoint_ssl_status NOT NULL,
+    last_check TIMESTAMPTZ DEFAULT now(),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
 -- Autenticação de endpoints (JSONB flexível)
 CREATE TABLE endpoint_auth (
    endpoint_id INT PRIMARY KEY REFERENCES endpoints(id) ON DELETE CASCADE,

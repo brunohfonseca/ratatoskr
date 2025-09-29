@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	mongodb "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
+	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -21,11 +21,11 @@ func HealthCheck(c *gin.Context) {
 // ReadinessCheck verifica se a aplicação está pronta para receber tráfego
 func ReadinessCheck(c *gin.Context) {
 	// Verificar conexões com dependências
-	mongoHealthy, mongoStatus, mongoErr := mongodb.CheckMongoDBHealth()
+	postgresHealthy, postgresStatus, postgresErr := postgres.CheckPostgresHealth()
 	redisHealthy, redisStatus, redisErr := redis.CheckRedisHealth()
 
 	// Determinar status geral da aplicação
-	overallHealthy := mongoHealthy && redisHealthy
+	overallHealthy := postgresHealthy && redisHealthy
 	httpStatus := http.StatusOK
 
 	if !overallHealthy {
@@ -34,9 +34,9 @@ func ReadinessCheck(c *gin.Context) {
 
 	// Preparar resposta detalhada
 	checks := gin.H{
-		"mongodb": gin.H{
-			"status":  mongoStatus,
-			"healthy": mongoHealthy,
+		"postgres": gin.H{
+			"status":  postgresStatus,
+			"healthy": postgresHealthy,
 		},
 		"redis": gin.H{
 			"status":  redisStatus,
@@ -45,9 +45,9 @@ func ReadinessCheck(c *gin.Context) {
 	}
 
 	// Adicionar detalhes de erro se houver
-	if mongoErr != nil {
-		checks["mongodb"].(gin.H)["error"] = mongoErr.Error()
-		log.Warn().Err(mongoErr).Msg("MongoDB health check failed")
+	if postgresErr != nil {
+		checks["mongodb"].(gin.H)["error"] = postgresErr.Error()
+		log.Warn().Err(postgresErr).Msg("MongoDB health check failed")
 	}
 
 	if redisErr != nil {
@@ -69,8 +69,6 @@ func ReadinessCheck(c *gin.Context) {
 
 // LivenessCheck verifica se a aplicação ainda está viva
 func LivenessCheck(c *gin.Context) {
-	log.Debug().Msg("Liveness check executado")
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":    "alive",
 		"timestamp": gin.H{},

@@ -3,46 +3,32 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/brunohfonseca/ratatoskr/internal/repositories"
+	"github.com/brunohfonseca/ratatoskr/internal/entities"
+	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	"github.com/gin-gonic/gin"
 )
 
-type EndpointHandler struct {
-	repo repositories.EndpointRepository
-}
-
-func NewEndpointHandler(repo repositories.EndpointRepository) *EndpointHandler {
-	return &EndpointHandler{repo: repo}
-}
-
 // CreateService cria um novo endpoint
 func CreateService(c *gin.Context) {
-	//var e entities.Endpoint
-	//if err := c.ShouldBindJSON(&e); err != nil {
-	//	c.JSON(http.StatusBadRequest, gin.H{"error": "JSON inválido: " + err.Error()})
-	//	return
-	//}
-	//
-	//// valida campos obrigatórios
-	//if e.Name == "" || e.Domain == "" {
-	//	c.JSON(http.StatusBadRequest, gin.H{"error": "Name e Domain são obrigatórios"})
-	//	return
-	//}
-	//
-	//// contexto com timeout baseado no request
-	//ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
-	//defer cancel()
-	//
-	//id, err := h.repo.Create(ctx, &e)
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	//	return
-	//}
-	//
-	//e.ID = id // garante que o JSON de resposta tem o ID gerado
-	//c.JSON(http.StatusCreated, gin.H{
-	//	"endpoint": e,
-	//})
+	var endpoint entities.Endpoint
+	if err := c.BindJSON(&endpoint); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db := postgres.Postgres
+	sql := "INSERT INTO endpoints (name, domain) VALUES ($1, $2) RETURNING id, name, domain"
+	err := db.QueryRow(sql,
+		endpoint.Name,
+		endpoint.Domain,
+		endpoint.EndpointPath,
+		endpoint.Status,
+	).Scan(&endpoint.ID, &endpoint.Name, &endpoint.Domain)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"endpoint": endpoint})
 }
 
 // ListServices lista todos os endpoints cadastrados

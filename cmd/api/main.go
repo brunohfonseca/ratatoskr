@@ -11,7 +11,7 @@ import (
 
 	"github.com/brunohfonseca/ratatoskr/internal/api"
 	"github.com/brunohfonseca/ratatoskr/internal/config"
-	mongodb "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
+	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/rs/zerolog/log"
 )
@@ -34,7 +34,7 @@ func main() {
 	config.SetupLogs()
 	log.Info().Msgf("🚀 Iniciando o serviço com o arquivo de configuração: %s", *configFile)
 	redis.ConnectRedis(cfg.Redis.RedisURL)
-	mongodb.ConnectMongoDB(cfg.Database.MongoURL)
+	postgres.ConnectPostgres(cfg.Database.PostgresURL)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -62,7 +62,7 @@ func main() {
 	log.Info().Msg("🛑 Sinal de parada recebido. Finalizando aplicação...")
 
 	redis.DisconnectRedis()
-	mongodb.DisconnectMongoDB()
+	postgres.DisconnectPostgres()
 
 	log.Info().Msg("✅ Aplicação finalizada com sucesso!")
 }
