@@ -6,6 +6,7 @@ import (
 	"github.com/brunohfonseca/ratatoskr/internal/entities"
 	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // CreateService cria um novo endpoint
@@ -16,10 +17,15 @@ func CreateService(c *gin.Context) {
 		return
 	}
 
+	v7, err := uuid.NewV7()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
 	db := postgres.Postgres
-	sql := "INSERT INTO endpoints (name, domain) VALUES ($1, $2) RETURNING id, name, domain"
-	err := db.QueryRow(sql,
+	sql := "INSERT INTO endpoints (name, uuid, domain) VALUES ($1, $2) RETURNING id, name, domain"
+	err = db.QueryRow(sql,
 		endpoint.Name,
+		v7,
 		endpoint.Domain,
 		endpoint.EndpointPath,
 		endpoint.Status,

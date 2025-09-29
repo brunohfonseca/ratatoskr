@@ -28,18 +28,9 @@ CREATE TABLE alert_group_channels (
 );
 
 -- Histórico de alertas enviados
-CREATE TABLE sent_alerts (
-    id BIGSERIAL PRIMARY KEY,
-    endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
-    channel_id INT NOT NULL REFERENCES alert_channels(id) ON DELETE CASCADE,
-    message TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Endpoints monitorados
 CREATE TABLE endpoints (
     id SERIAL PRIMARY KEY,
-    uuid UUID DEFAULT gen_random_uuid(),
+    uuid UUID,
     name TEXT NOT NULL,
     domain TEXT NOT NULL,
     port INT DEFAULT 80,
@@ -53,6 +44,7 @@ CREATE TABLE endpoints (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- Endpoints monitorados
 CREATE TABLE endpoint_ssl (
     id SERIAL PRIMARY KEY,
     endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
@@ -63,16 +55,17 @@ CREATE TABLE endpoint_ssl (
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
--- Autenticação de endpoints (JSONB flexível)
+
+-- Resultado da checagem SSL
 CREATE TABLE endpoint_auth (
-   endpoint_id INT PRIMARY KEY REFERENCES endpoints(id) ON DELETE CASCADE,
-   type TEXT NOT NULL,         -- basic, bearer, api_key
-   config JSONB NOT NULL,      -- {"username":"x","password":"y"} ou {"token":"..."}
-   created_at TIMESTAMPTZ DEFAULT now()
+    endpoint_id INT PRIMARY KEY REFERENCES endpoints(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,         -- basic, bearer, api_key
+    config JSONB NOT NULL,      -- {"username":"x","password":"y"} ou {"token":"..."}
+    created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Histórico das checagens (time-series)
-CREATE TABLE checks (
+-- Autenticação de endpoints (JSONB flexível)
+CREATE TABLE endpoint_checks (
     id BIGSERIAL PRIMARY KEY,
     endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
     status check_status NOT NULL,
@@ -83,14 +76,24 @@ CREATE TABLE checks (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- Histórico das checagens (time-series)
+CREATE TABLE sent_alerts (
+    id BIGSERIAL PRIMARY KEY,
+    endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
+    channel_id INT NOT NULL REFERENCES alert_channels(id) ON DELETE CASCADE,
+    message TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Usuários
 CREATE TABLE users (
-   id SERIAL PRIMARY KEY,
-   username TEXT NOT NULL UNIQUE,
-   email TEXT NOT NULL UNIQUE,
-   full_name TEXT,
-   password_hash TEXT,
-   auth_provider TEXT NOT NULL DEFAULT 'local',
-   enabled BOOLEAN DEFAULT TRUE,
-   created_at TIMESTAMPTZ DEFAULT now(),
-   updated_at TIMESTAMPTZ DEFAULT now()
+    id SERIAL PRIMARY KEY,
+    uuid UUID,
+    email TEXT NOT NULL UNIQUE,
+    full_name TEXT,
+    password_hash TEXT,
+    auth_provider TEXT NOT NULL DEFAULT 'local',
+    enabled BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
