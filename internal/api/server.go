@@ -40,7 +40,21 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 	// Configurar as rotas
 	routes.SetupRoutes(router)
 
+	// Se estiver em modo debug, imprimir as rotas registradas
+	if cfg.Server.Debug {
+		printRoutes(router)
+	}
+
 	return router
+}
+
+// printRoutes imprime todas as rotas registradas no router
+func printRoutes(router *gin.Engine) {
+	availableRoutes := router.Routes()
+	zlog.Debug().Msg("🛣️  Rotas registradas:")
+	for _, route := range availableRoutes {
+		zlog.Debug().Msgf("  %-6s %s", route.Method, route.Path)
+	}
 }
 
 func ServerStart(cfg *config.AppConfig) *http.Server {
