@@ -16,3 +16,15 @@ services:
     volumes:
       - .docker/data/redis:/data
     restart: unless-stopped
+
+  postgres:
+    image: postgres:alpine
+    container_name: ratatoskr-postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - .docker/data/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ratatoskr
+      POSTGRES_PASSWORD: ratatoskr123
+      POSTGRES_DB: ratatoskr

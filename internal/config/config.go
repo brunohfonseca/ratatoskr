@@ -32,7 +32,8 @@ type AppConfig struct {
 		} `yaml:"ssl"`
 	} `yaml:"server"`
 	Database struct {
-		MongoURL string `yaml:"mongo_url"`
+		MongoURL    string `yaml:"mongo_url"`
+		PostgresURL string `yaml:"postgres_url"`
 	} `yaml:"database"`
 	Redis struct {
 		RedisURL string `yaml:"redis_url"`
