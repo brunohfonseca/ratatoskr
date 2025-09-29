@@ -3,6 +3,20 @@ CREATE TYPE check_status AS ENUM ('ok', 'down', 'ssl_expired', 'timeout', 'error
 CREATE TYPE alert_channel_type AS ENUM ('slack', 'telegram', 'email');
 CREATE TYPE endpoint_ssl_status AS ENUM ('ok', 'warning', 'expired');
 
+-- Usuários
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    uuid UUID,
+    email TEXT NOT NULL UNIQUE,
+    full_name TEXT,
+    password_hash TEXT,
+    auth_provider TEXT NOT NULL DEFAULT 'local',
+    enabled BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+
 -- Grupos de alerta
 CREATE TABLE alert_groups (
     id SERIAL PRIMARY KEY,
@@ -31,14 +45,18 @@ CREATE TABLE alert_group_channels (
 CREATE TABLE endpoints (
     id SERIAL PRIMARY KEY,
     uuid UUID,
-    name TEXT NOT NULL,
-    domain TEXT NOT NULL,
-    path TEXT DEFAULT '/',
-    timeout_seconds INT DEFAULT 30,
-    interval_seconds INT DEFAULT 300,
+    name VARCHAR(25) NOT NULL,
+    domain VARCHAR(75) NOT NULL,
+    path VARCHAR(30) DEFAULT '/',
     check_ssl BOOLEAN DEFAULT FALSE,
     enabled BOOLEAN DEFAULT TRUE,
+    expected_response_code INT,
+    response_body VARCHAR(300),
+    response_time_ms INT,
+    timeout_seconds INT DEFAULT 30,
+    interval_seconds INT DEFAULT 300,
     alert_group_id INT REFERENCES alert_groups(id) ON DELETE SET NULL,
+    last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -82,17 +100,4 @@ CREATE TABLE sent_alerts (
     channel_id INT NOT NULL REFERENCES alert_channels(id) ON DELETE CASCADE,
     message TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Usuários
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    uuid UUID,
-    email TEXT NOT NULL UNIQUE,
-    full_name TEXT,
-    password_hash TEXT,
-    auth_provider TEXT NOT NULL DEFAULT 'local',
-    enabled BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
 );
