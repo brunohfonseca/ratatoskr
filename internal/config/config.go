@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 
+	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
+	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -50,7 +52,7 @@ type AppConfig struct {
 	} `yaml:"alerting"`
 }
 
-func LoadConfig(path string) (*AppConfig, error) {
+func LoadYamlConfig(path string) (*AppConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -71,4 +73,16 @@ func LoadConfig(path string) (*AppConfig, error) {
 
 func Get() *AppConfig {
 	return appConfig
+}
+
+func LoadConfig(path string) (string, error) {
+	_, err := LoadYamlConfig(path)
+	if err != nil {
+		return "", err
+	}
+
+	log.Info().Msgf("🚀 Iniciando o serviço com o arquivo de configuração: %s", path)
+	redis.ConnectRedis(appConfig.Redis.RedisURL)
+	postgres.ConnectPostgres(appConfig.Database.PostgresURL)
+	return "", nil
 }

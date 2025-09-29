@@ -20,6 +20,7 @@ func main() {
 	configFile := flag.String("config", "/app/config.yml", "Arquivo de configuração")
 	flag.Parse()
 
+	config.SetupLogs()
 	_, err := config.LoadConfig(*configFile)
 	if err != nil {
 		log.Fatal().Msgf("❌ Erro ao carregar config: %v", err)
@@ -31,10 +32,10 @@ func main() {
 		return
 	}
 
-	config.SetupLogs()
-	log.Info().Msgf("🚀 Iniciando o serviço com o arquivo de configuração: %s", *configFile)
-	redis.ConnectRedis(cfg.Redis.RedisURL)
-	postgres.ConnectPostgres(cfg.Database.PostgresURL)
+	err = postgres.Migrate(cfg.Database.PostgresURL)
+	if err != nil {
+		log.Fatal().Msgf("❌ Erro ao executar migrations no banco de dados: %v", err)
+	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)

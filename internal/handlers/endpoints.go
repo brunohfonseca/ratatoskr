@@ -22,19 +22,23 @@ func CreateService(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 	db := postgres.Postgres
-	sql := "INSERT INTO endpoints (name, uuid, domain) VALUES ($1, $2) RETURNING id, name, domain"
+	sql := "INSERT INTO endpoints (name, uuid, domain, path, check_ssl) VALUES ($1, $2, $3, $4, $5) RETURNING id"
 	err = db.QueryRow(sql,
 		endpoint.Name,
 		v7,
 		endpoint.Domain,
 		endpoint.EndpointPath,
-		endpoint.Status,
-	).Scan(&endpoint.ID, &endpoint.Name, &endpoint.Domain)
+		endpoint.CheckSSL,
+	).Scan(&endpoint.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"endpoint": endpoint})
+	c.JSON(http.StatusCreated, gin.H{
+		"message":     "ok",
+		"endpoint_id": endpoint.ID,
+		"endpoint":    endpoint,
+	})
 }
 
 // ListServices lista todos os endpoints cadastrados
