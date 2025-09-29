@@ -15,7 +15,7 @@ func setupAPIv1Routes(router *gin.Engine) {
 	api := router.Group("/api/v1")
 	{
 		// Services routes - monitoramento de serviços
-		setupServicesRoutes(api)
+		setupEndpointsRoutes(api)
 		// Alerts routes - configuração de alertas
 		setupNotificationsRoutes(api)
 		// Health routes - health check
