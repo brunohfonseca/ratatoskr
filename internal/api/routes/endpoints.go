@@ -2,8 +2,6 @@ package routes
 
 import (
 	"github.com/brunohfonseca/ratatoskr/internal/handlers"
-	infra "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/mongodb"
-	"github.com/brunohfonseca/ratatoskr/internal/repositories"
 	"github.com/gin-gonic/gin"
 )
 
