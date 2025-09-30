@@ -78,7 +78,6 @@ CREATE TABLE endpoint_ssl (
     issuer VARCHAR(40) NOT NULL,
     status endpoint_ssl_status NOT NULL,
     last_check TIMESTAMPTZ DEFAULT now(),
-    last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -91,9 +90,7 @@ CREATE TABLE endpoint_checks (
     status check_status NOT NULL,
     response_time_ms INT,
     response_message VARCHAR(300),
-    last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
+    created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- Autenticação de endpoints (JSONB flexível)

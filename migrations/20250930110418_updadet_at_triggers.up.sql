@@ -26,6 +26,3 @@ CREATE TRIGGER update_endpoint_auth_updated_at BEFORE UPDATE ON endpoint_auth
 
 CREATE TRIGGER update_endpoints_updated_at BEFORE UPDATE ON endpoints
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_endpoint_checks_updated_at BEFORE UPDATE ON endpoint_checks
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
