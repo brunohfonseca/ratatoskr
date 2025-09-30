@@ -16,11 +16,32 @@ func StartHealthCheckWorker(redisClient *redis.Client, groupName, consumerName s
 	group := groupName
 	consumer := consumerName
 
-	redisClient.XGroupCreateMkStream(ctx, "alerts", group, "0")
-	redisClient.XGroupCreateMkStream(ctx, "endpoints", group, "0")
-	redisClient.XGroupCreateMkStream(ctx, "ssl-checks", group, "0")
+	log.Info().
+		Str("group", group).
+		Str("consumer", consumer).
+		Msg("Initializing worker...")
 
-	log.Info().Msg("🚀 Consumer started")
+	// Cria consumer groups para cada stream
+	streams := []string{"alerts", "endpoints", "ssl-checks"}
+
+	for _, stream := range streams {
+		err := redisClient.XGroupCreateMkStream(ctx, stream, group, "0").Err()
+		if err != nil {
+			// Ignora se grupo já existe
+			if err.Error() == "BUSYGROUP Consumer Group name already exists" {
+				log.Info().Str("stream", stream).Str("group", group).Msg("Consumer group already exists")
+			} else {
+				log.Error().Err(err).Str("stream", stream).Str("group", group).Msg("Failed to create consumer group")
+			}
+		} else {
+			log.Info().Str("stream", stream).Str("group", group).Msg("Consumer group created")
+		}
+	}
+
+	// Pequeno delay para garantir que Redis processou
+	time.Sleep(100 * time.Millisecond)
+
+	log.Info().Str("consumer", consumer).Str("group", group).Msg("🚀 Consumer started")
 
 	for {
 		// Lê mensagens do stream
@@ -34,7 +55,21 @@ func StartHealthCheckWorker(redisClient *redis.Client, groupName, consumerName s
 
 		if err != nil {
 			if err != redis.Nil {
-				log.Error().Err(err).Msg("Failed to read from stream")
+				// Se for erro de grupo não encontrado, loga e para
+				if err.Error() == "NOGROUP No such key '>' or consumer group '"+group+"' in XREADGROUP with GROUP option" {
+					log.Fatal().
+						Err(err).
+						Str("group", group).
+						Str("consumer", consumer).
+						Msg("❌ Consumer group not found - stopping worker")
+				}
+
+				// Outros erros também param
+				log.Fatal().
+					Err(err).
+					Str("group", group).
+					Str("consumer", consumer).
+					Msg("❌ Fatal error reading from stream - stopping worker")
 			}
 			continue
 		}
