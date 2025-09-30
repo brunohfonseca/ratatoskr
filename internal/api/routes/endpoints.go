@@ -6,13 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// setupServicesRoutes configura rotas relacionadas aos serviços
+// setupEndpointsRoutes configura rotas relacionadas aos serviços
 func setupEndpointsRoutes(api *gin.RouterGroup) {
 
 	endpoints := api.Group("/endpoints")
 	{
 		// Health check e status (rotas públicas para monitoramento)
-		endpoints.GET("/:id/status", handlers.GetServiceStatus)
+		endpoints.GET("/:id/status", handlers.GetEndpointStatus)
 		endpoints.POST("/:id/health-check", handlers.TriggerHealthCheck)
 
 		// Rotas protegidas - requerem autenticação JWT
@@ -20,14 +20,14 @@ func setupEndpointsRoutes(api *gin.RouterGroup) {
 		authenticated.Use(middlewares.AuthMiddleware())
 		{
 			// CRUD básico de endpoints
-			authenticated.POST("/", handlers.CreateService)
-			authenticated.GET("/", handlers.ListServices)
-			authenticated.GET("/:id", handlers.GetService)
-			authenticated.PUT("/:id", handlers.UpdateService)
-			authenticated.DELETE("/:id", handlers.DeleteService)
+			authenticated.POST("/", handlers.CreateEndpoint)
+			authenticated.GET("/", handlers.ListEndpoints)
+			authenticated.GET("/:id", handlers.GetEndpoint)
+			authenticated.PUT("/:id", handlers.UpdateEndpoint)
+			authenticated.DELETE("/:id", handlers.DeleteEndpoint)
 			// Histórico de health checks
-			authenticated.GET("/:id/history", handlers.GetServiceHistory)
-			authenticated.GET("/:id/uptime", handlers.GetServiceUptime)
+			authenticated.GET("/:id/history", handlers.GetEndpointHistory)
+			authenticated.GET("/:id/uptime", handlers.GetEndpointUptime)
 		}
 	}
 }

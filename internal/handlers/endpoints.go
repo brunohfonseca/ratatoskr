@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// CreateService cria um novo endpoint
-func CreateService(c *gin.Context) {
+// CreateEndpoint cria um novo endpoint
+func CreateEndpoint(c *gin.Context) {
 	var endpoint models.Endpoint
 	if err := c.BindJSON(&endpoint); err != nil {
 		responses.Error(c, http.StatusBadRequest, err)
@@ -54,8 +54,8 @@ func CreateService(c *gin.Context) {
 	responses.Success(c, http.StatusCreated, endpoint)
 }
 
-// ListServices lista todos os endpoints cadastrados
-func ListServices(c *gin.Context) {
+// ListEndpoints lista todos os endpoints cadastrados
+func ListEndpoints(c *gin.Context) {
 	var endpoints []models.Endpoint
 
 	db := postgres.PostgresConn
@@ -110,16 +110,16 @@ func ListServices(c *gin.Context) {
 	})
 }
 
-// GetService busca um endpoint específico por ID
-func GetService(c *gin.Context) {
+// GetEndpoint busca um endpoint específico por ID
+func GetEndpoint(c *gin.Context) {
 	id := c.Param("id")
 	c.JSON(http.StatusOK, gin.H{
 		"endpoint": id,
 	})
 }
 
-// UpdateService atualiza um endpoint existente
-func UpdateService(c *gin.Context) {
+// UpdateEndpoint atualiza um endpoint existente
+func UpdateEndpoint(c *gin.Context) {
 	id := c.Param("id")
 	c.JSON(http.StatusOK, gin.H{
 		"endpoint": id,
@@ -127,8 +127,8 @@ func UpdateService(c *gin.Context) {
 	})
 }
 
-// DeleteService remove um endpoint
-func DeleteService(c *gin.Context) {
+// DeleteEndpoint remove um endpoint
+func DeleteEndpoint(c *gin.Context) {
 	//id := c.Param("id")
 
 	// TODO: Implementar health check real
@@ -137,8 +137,8 @@ func DeleteService(c *gin.Context) {
 	})
 }
 
-// GetServiceStatus retorna o status atual do serviço
-func GetServiceStatus(c *gin.Context) {
+// GetEndpointStatus retorna o status atual do serviço
+func GetEndpointStatus(c *gin.Context) {
 	id := c.Param("id")
 
 	// TODO: Implementar verificação real de status
@@ -163,8 +163,8 @@ func TriggerHealthCheck(c *gin.Context) {
 	})
 }
 
-// GetServiceHistory retorna o histórico de health checks
-func GetServiceHistory(c *gin.Context) {
+// GetEndpointHistory retorna o histórico de health checks
+func GetEndpointHistory(c *gin.Context) {
 	id := c.Param("id")
 
 	// TODO: Buscar histórico no MongoDB
@@ -176,8 +176,8 @@ func GetServiceHistory(c *gin.Context) {
 	})
 }
 
-// GetServiceUptime retorna estatísticas de uptime
-func GetServiceUptime(c *gin.Context) {
+// GetEndpointUptime retorna estatísticas de uptime
+func GetEndpointUptime(c *gin.Context) {
 	id := c.Param("id")
 
 	// TODO: Calcular uptime real baseado no histórico

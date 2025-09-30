@@ -1,6 +1,7 @@
 server:
   name: "ratatoskr-api"
   environment: "development"
+  #If SSL is Enable, this parameter is not used
   port: 8080
   debug: true
   trusted_proxies:
@@ -12,6 +13,6 @@ server:
     cert: "ssl/self-signed.crt"
     key: "ssl/self-signed.key"
 database:
-  postgres_url: "postgres://ratatoskr:ratatoskr123@127.0.0.1:5432/ratatoskr?sslmode=disable"
+  postgres_url: "postgres://ratatoskr:ratatoskr123@127.0.0.1:5432/ratatoskr?sslmode=disable&application_name=ratatoskr-api"
 redis:
   redis_url: "redis://127.0.0.1:6379/0"
