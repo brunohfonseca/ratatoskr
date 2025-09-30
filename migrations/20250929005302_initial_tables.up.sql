@@ -2,15 +2,16 @@
 CREATE TYPE check_status AS ENUM ('ok', 'down', 'timeout', 'error', 'unknown');
 CREATE TYPE alert_channel_type AS ENUM ('slack', 'telegram', 'email');
 CREATE TYPE endpoint_ssl_status AS ENUM ('ok', 'warning', 'expired');
+CREATE TYPE auth_provider AS ENUM ('local', 'keycloak');
 
 -- Usuários
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuidv7(),
-    email TEXT NOT NULL UNIQUE,
-    full_name TEXT,
-    password_hash TEXT,
-    auth_provider TEXT NOT NULL DEFAULT 'local',
+    email VARCHAR(70) NOT NULL UNIQUE,
+    full_name VARCHAR(80),
+    password_hash VARCHAR(500),
+    auth_provider auth_provider NOT NULL DEFAULT 'local',
     enabled BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
@@ -21,7 +22,7 @@ CREATE TABLE alert_groups (
     id SERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuidv7(),
     name VARCHAR(50) NOT NULL,
-    description TEXT,
+    description VARCHAR(300),
     last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
@@ -58,7 +59,7 @@ CREATE TABLE endpoints (
     enabled BOOLEAN DEFAULT TRUE,
     status check_status NOT NULL DEFAULT 'unknown',
     expected_response_code INT,
-    response_body VARCHAR(300),
+    response_message VARCHAR(300),
     response_time_ms INT,
     timeout_seconds INT DEFAULT 30,
     interval_seconds INT DEFAULT 300,
@@ -74,7 +75,7 @@ CREATE TABLE endpoint_ssl (
     uuid UUID DEFAULT uuidv7(),
     endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
     expiration_date TIMESTAMPTZ NOT NULL,
-    issuer TEXT NOT NULL,
+    issuer VARCHAR(40) NOT NULL,
     status endpoint_ssl_status NOT NULL,
     last_check TIMESTAMPTZ DEFAULT now(),
     last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
@@ -89,7 +90,7 @@ CREATE TABLE endpoint_checks (
     endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
     status check_status NOT NULL,
     response_time_ms INT,
-    error_message TEXT,
+    response_message VARCHAR(300),
     last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
@@ -99,7 +100,6 @@ CREATE TABLE endpoint_checks (
 CREATE TABLE endpoint_auth (
     uuid UUID DEFAULT uuidv7(),
     endpoint_id INT PRIMARY KEY REFERENCES endpoints(id) ON DELETE CASCADE,
-    type TEXT NOT NULL,
     config JSONB NOT NULL,
     last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
@@ -112,6 +112,6 @@ CREATE TABLE sent_alerts (
     uuid UUID DEFAULT uuidv7(),
     endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
     channel_id INT NOT NULL REFERENCES alert_channels(id) ON DELETE CASCADE,
-    message TEXT NOT NULL,
+    message VARCHAR(500) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()
 );
