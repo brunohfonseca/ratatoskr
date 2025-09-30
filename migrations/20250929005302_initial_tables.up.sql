@@ -53,7 +53,7 @@ CREATE TABLE endpoints (
     path VARCHAR(30) DEFAULT '/',
     check_ssl BOOLEAN DEFAULT FALSE,
     enabled BOOLEAN DEFAULT TRUE,
-    status check_status NOT NULL DEFAULT 'ok',
+    status check_status NOT NULL DEFAULT 'unknown',
     expected_response_code INT,
     response_body VARCHAR(300),
     response_time_ms INT,

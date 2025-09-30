@@ -104,7 +104,10 @@ func ListServices(c *gin.Context) {
 		return
 	}
 
-	responses.Success(c, http.StatusOK, endpoints)
+	responses.Success(c, http.StatusOK, gin.H{
+		"total":     len(endpoints),
+		"endpoints": endpoints,
+	})
 }
 
 // GetService busca um endpoint específico por ID
