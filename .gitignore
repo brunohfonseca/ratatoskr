@@ -1,7 +1,7 @@
 .idea
 .env
 .docker
-config.yml
+api-config.yml
 worker-config.yml
 /ssl
 tmp

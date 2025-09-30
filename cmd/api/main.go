@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	configFile := flag.String("config", "/app/config.yml", "Arquivo de configuração")
+	configFile := flag.String("config", "/app/api-config.yml", "Arquivo de configuração")
 	flag.Parse()
 
 	config.SetupLogs()

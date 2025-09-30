@@ -3,12 +3,12 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  args_bin = ["--config", "config/api-config.yml"]
-  bin = "./tmp/api"
-  cmd = "go build -o ./tmp/api ./cmd/api"
+  args_bin = ["--config", "config/worker-config.yml"]
+  bin = "./tmp/worker"
+  cmd = "go build -o ./tmp/worker ./cmd/worker"
   delay = 1000
-  exclude_dir = ["assets", "tmp", "vendor", "testdata", "ssl", ".docker", "migrations", "cmd/worker"]
-  exclude_file = [".golangci.yml", ".goreleaser.yml", "config/*.example.yml", "config/worker-config.yml"]
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "ssl", ".docker", "migrations", "cmd/api"]
+  exclude_file = [".golangci.yml", ".goreleaser.yml", "config/*.example.yml", "config/config.example.yml"]
   exclude_regex = ["_test.go"]
   exclude_unchanged = false
   follow_symlink = false
