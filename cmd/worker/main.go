@@ -4,6 +4,8 @@ import (
 	"flag"
 
 	"github.com/brunohfonseca/ratatoskr/internal/config"
+	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
+	"github.com/brunohfonseca/ratatoskr/internal/worker"
 	"github.com/rs/zerolog/log"
 )
 
@@ -22,5 +24,9 @@ func main() {
 		log.Fatal().Msg("❌ Configuração não carregada")
 		return
 	}
-	log.Info().Msg("starting worker")
+
+	log.Info().Msg("🚀 Worker starting...")
+
+	// Inicia o worker de health check
+	worker.StartHealthCheckWorker(redis.RedisClient)
 }

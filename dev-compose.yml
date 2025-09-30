@@ -1,0 +1,56 @@
+services:
+  api:
+    image: cosmtrek/air
+    container_name: ratatoskr-api
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - ./:/app
+    command: -c /app/.api.air.toml
+    working_dir: /app
+    restart: unless-stopped
+    networks:
+      - ratatoskr-dev-network
+
+  worker:
+    image: cosmtrek/air
+    container_name: ratatoskr-worker
+    volumes:
+      - ./:/app
+    command: -c /app/.worker.air.toml
+    restart: unless-stopped
+    working_dir: /app
+    networks:
+      - ratatoskr-dev-network
+
+  redis:
+    image: redis:alpine
+    container_name: ratatoskr-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - .docker/data/redis:/data
+    restart: unless-stopped
+    networks:
+      - ratatoskr-dev-network
+
+  postgres:
+    image: postgres:alpine
+    container_name: ratatoskr-postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - .docker/data/postgres:/var/lib/postgresql/18/docker
+    environment:
+      POSTGRES_USER: ratatoskr
+      POSTGRES_PASSWORD: ratatoskr123
+      POSTGRES_DB: ratatoskr
+    restart: unless-stopped
+    networks:
+      - ratatoskr-dev-network
+
+networks:
+  ratatoskr-dev-network:
+    driver: bridge
+    name: ratatoskr-dev-network

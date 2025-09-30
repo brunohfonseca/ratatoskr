@@ -90,8 +90,6 @@ CREATE TABLE endpoint_checks (
     status check_status NOT NULL,
     response_time_ms INT,
     error_message TEXT,
-    ssl_expiration_date TIMESTAMPTZ,
-    ssl_issuer TEXT,
     last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
