@@ -5,7 +5,7 @@ tmp_dir = "tmp"
 [build]
   args_bin = ["--config", "config/worker-config.yml"]
   bin = "./tmp/worker"
-  cmd = "go build -o ./tmp/worker ./cmd/worker"
+  cmd = "go build -buildvcs=false -o ./tmp/worker ./cmd/worker"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "ssl", ".docker", "migrations", "cmd/api", "internal/api", "internal/handlers"]
   exclude_file = [".golangci.yml", ".goreleaser.yml", "config/*.example.yml", "config/config.example.yml", "compose.yml", "dev-compose.yml"]

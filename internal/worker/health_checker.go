@@ -20,7 +20,7 @@ func StartHealthCheckWorker(redisClient *redis.Client, groupName, consumerName s
 	redisClient.XGroupCreateMkStream(ctx, "endpoints", group, "0")
 	redisClient.XGroupCreateMkStream(ctx, "ssl-checks", group, "0")
 
-	log.Info().Msg("🚀 Health Check Worker started")
+	log.Info().Msg("🚀 Consumer started")
 
 	for {
 		// Lê mensagens do stream
