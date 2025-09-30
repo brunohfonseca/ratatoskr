@@ -1,13 +1,4 @@
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: ratatoskr-mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - .docker/data/mongo:/data/db
-    restart: unless-stopped
-
   redis:
     image: redis:alpine
     container_name: ratatoskr-redis
@@ -28,3 +19,4 @@ services:
       POSTGRES_USER: ratatoskr
       POSTGRES_PASSWORD: ratatoskr123
       POSTGRES_DB: ratatoskr
+    restart: unless-stopped
