@@ -3,13 +3,17 @@ package handlers
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/base64"
 	"net/http"
 
 	"github.com/brunohfonseca/ratatoskr/internal/config"
+	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
+	"github.com/brunohfonseca/ratatoskr/internal/utils"
 	"github.com/brunohfonseca/ratatoskr/internal/utils/responses"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/oauth2"
 )
 
@@ -127,19 +131,80 @@ func KeycloakCallback(c *gin.Context) {
 		return
 	}
 
-	// TODO: Buscar ou criar usuário no banco baseado no email
-	// userID, userUUID := getOrCreateUser(claims.Email, claims.Name)
+	// Busca ou cria usuário no banco
+	userID, userUUID, err := getOrCreateUser(claims.Email, claims.Name, claims.Sub)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get or create user")
+		responses.ErrorMsg(c, http.StatusInternalServerError, "Failed to create user account")
+		return
+	}
 
 	// Gera JWT interno da aplicação
-	// token, _ := utils.GenerateJWT(userID, userUUID, claims.Email)
+	token, err := utils.GenerateJWT(userID, userUUID, claims.Email)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to generate JWT")
+		responses.ErrorMsg(c, http.StatusInternalServerError, "Failed to generate token")
+		return
+	}
 
-	// Por enquanto, retorna as informações
+	// Retorna o token
 	responses.Success(c, http.StatusOK, gin.H{
-		"email":   claims.Email,
-		"name":    claims.Name,
-		"sub":     claims.Sub,
-		"message": "SSO authentication successful. TODO: Generate internal JWT",
+		"token": token,
+		"user": gin.H{
+			"id":    userID,
+			"uuid":  userUUID,
+			"email": claims.Email,
+			"name":  claims.Name,
+		},
 	})
+}
+
+// getOrCreateUser busca ou cria um usuário no banco baseado no email do SSO
+func getOrCreateUser(email, name, ssoID string) (int, string, error) {
+	db := postgres.PostgresConn
+
+	// Tenta buscar usuário existente por email
+	var userID int
+	var userUUID string
+	var enabled bool
+
+	err := db.QueryRow(
+		"SELECT id, uuid, enabled FROM users WHERE email = $1",
+		email,
+	).Scan(&userID, &userUUID, &enabled)
+
+	if err == nil {
+		// Usuário existe
+		if !enabled {
+			return 0, "", sql.ErrNoRows // Usuário desabilitado
+		}
+		return userID, userUUID, nil
+	}
+
+	if err != sql.ErrNoRows {
+		// Erro inesperado
+		return 0, "", err
+	}
+
+	// Usuário não existe, cria novo
+	err = db.QueryRow(`
+		INSERT INTO users (email, full_name, enabled, password_hash, auth_provider)
+		VALUES ($1, $2, true, '', 'keycloak')
+		RETURNING id, uuid`,
+		email,
+		name,
+	).Scan(&userID, &userUUID)
+
+	if err != nil {
+		return 0, "", err
+	}
+
+	log.Info().
+		Int("user_id", userID).
+		Str("email", email).
+		Msg("New user created via SSO")
+
+	return userID, userUUID, nil
 }
 
 // generateRandomState gera um state aleatório para OAuth2
