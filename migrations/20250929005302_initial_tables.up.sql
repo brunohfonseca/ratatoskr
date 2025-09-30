@@ -108,6 +108,5 @@ CREATE TABLE sent_alerts (
     endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
     channel_id INT NOT NULL REFERENCES alert_channels(id) ON DELETE CASCADE,
     message TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
+    created_at TIMESTAMPTZ DEFAULT now()
 );
