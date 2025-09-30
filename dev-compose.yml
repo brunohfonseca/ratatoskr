@@ -7,6 +7,7 @@ services:
       - "8443:8443"
     volumes:
       - ./:/app
+      - /etc/localtime:/etc/localtime:ro
     command: -c /app/.api.air.toml
     working_dir: /app
     restart: unless-stopped
@@ -18,7 +19,10 @@ services:
     container_name: ratatoskr-worker
     volumes:
       - ./:/app
+      - /etc/localtime:/etc/localtime:ro
     command: -c /app/.worker.air.toml
+    environment:
+      - TASK_SLOT='{{ .Task.Slot }}'
     restart: unless-stopped
     working_dir: /app
     networks:
@@ -31,6 +35,7 @@ services:
       - "6379:6379"
     volumes:
       - .docker/data/redis:/data
+      - /etc/localtime:/etc/localtime:ro
     restart: unless-stopped
     networks:
       - ratatoskr-dev-network
@@ -42,6 +47,7 @@ services:
       - "5432:5432"
     volumes:
       - .docker/data/postgres:/var/lib/postgresql/18/docker
+      - /etc/localtime:/etc/localtime:ro
     environment:
       POSTGRES_USER: ratatoskr
       POSTGRES_PASSWORD: ratatoskr123

@@ -132,7 +132,7 @@ func KeycloakCallback(c *gin.Context) {
 	}
 
 	// Busca ou cria usuário no banco
-	userID, userUUID, err := getOrCreateUser(claims.Email, claims.Name, claims.Sub)
+	userID, userUUID, err := getOrCreateUser(claims.Email, claims.Name)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get or create user")
 		responses.ErrorMsg(c, http.StatusInternalServerError, "Failed to create user account")
@@ -160,7 +160,7 @@ func KeycloakCallback(c *gin.Context) {
 }
 
 // getOrCreateUser busca ou cria um usuário no banco baseado no email do SSO
-func getOrCreateUser(email, name, ssoID string) (int, string, error) {
+func getOrCreateUser(email, name string) (int, string, error) {
 	db := postgres.PostgresConn
 
 	// Tenta buscar usuário existente por email
