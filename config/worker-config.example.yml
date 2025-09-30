@@ -1,6 +1,7 @@
 server:
+  name: "ratatoskr-worker"
   environment: "development"
 database:
-  mongo_url: "mongodb://127.0.0.1:27017/ssl"
+  postgres_url: "postgres://ratatoskr:ratatoskr123@127.0.0.1:5432/ratatoskr?sslmode=disable&application_name=ratatoskr-worker"
 redis:
   redis_url: "redis://127.0.0.1:6379/0"

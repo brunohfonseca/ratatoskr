@@ -6,7 +6,7 @@ CREATE TYPE endpoint_ssl_status AS ENUM ('ok', 'warning', 'expired');
 -- Usuários
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    uuid UUID,
+    uuid UUID DEFAULT uuidv7(),
     email TEXT NOT NULL UNIQUE,
     full_name TEXT,
     password_hash TEXT,
@@ -19,6 +19,7 @@ CREATE TABLE users (
 -- Grupos de alerta
 CREATE TABLE alert_groups (
     id SERIAL PRIMARY KEY,
+    uuid UUID DEFAULT uuidv7(),
     name VARCHAR(50) NOT NULL,
     description TEXT,
     last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
@@ -29,6 +30,7 @@ CREATE TABLE alert_groups (
 -- Canais (slack, telegram, etc.)
 CREATE TABLE alert_channels (
     id SERIAL PRIMARY KEY,
+    uuid UUID DEFAULT uuidv7(),
     type alert_channel_type NOT NULL,      -- slack, telegram, email
     name VARCHAR(50) NOT NULL,
     config JSONB NOT NULL,
@@ -39,15 +41,16 @@ CREATE TABLE alert_channels (
 
 -- Relação N:N entre grupos e canais
 CREATE TABLE alert_group_channels (
+    id SERIAL PRIMARY KEY,
+    uuid UUID DEFAULT uuidv7(),
     group_id INT NOT NULL REFERENCES alert_groups(id) ON DELETE CASCADE,
-    channel_id INT NOT NULL REFERENCES alert_channels(id) ON DELETE CASCADE,
-    PRIMARY KEY (group_id, channel_id)
+    channel_id INT NOT NULL REFERENCES alert_channels(id) ON DELETE CASCADE
 );
 
 -- Histórico de alertas enviados
 CREATE TABLE endpoints (
     id SERIAL PRIMARY KEY,
-    uuid UUID,
+    uuid UUID DEFAULT uuidv7(),
     name VARCHAR(25) NOT NULL,
     domain VARCHAR(75) NOT NULL,
     path VARCHAR(30) DEFAULT '/',
@@ -68,6 +71,7 @@ CREATE TABLE endpoints (
 -- Endpoints monitorados
 CREATE TABLE endpoint_ssl (
     id SERIAL PRIMARY KEY,
+    uuid UUID DEFAULT uuidv7(),
     endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
     expiration_date TIMESTAMPTZ NOT NULL,
     issuer TEXT NOT NULL,
@@ -79,18 +83,9 @@ CREATE TABLE endpoint_ssl (
 );
 
 -- Resultado da checagem SSL
-CREATE TABLE endpoint_auth (
-    endpoint_id INT PRIMARY KEY REFERENCES endpoints(id) ON DELETE CASCADE,
-    type TEXT NOT NULL,
-    config JSONB NOT NULL,
-    last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Autenticação de endpoints (JSONB flexível)
 CREATE TABLE endpoint_checks (
     id BIGSERIAL PRIMARY KEY,
+    uuid UUID DEFAULT uuidv7(),
     endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
     status check_status NOT NULL,
     response_time_ms INT,
@@ -102,9 +97,21 @@ CREATE TABLE endpoint_checks (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- Autenticação de endpoints (JSONB flexível)
+CREATE TABLE endpoint_auth (
+    uuid UUID DEFAULT uuidv7(),
+    endpoint_id INT PRIMARY KEY REFERENCES endpoints(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    config JSONB NOT NULL,
+    last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- Histórico das checagens (time-series)
 CREATE TABLE sent_alerts (
     id BIGSERIAL PRIMARY KEY,
+    uuid UUID DEFAULT uuidv7(),
     endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
     channel_id INT NOT NULL REFERENCES alert_channels(id) ON DELETE CASCADE,
     message TEXT NOT NULL,
