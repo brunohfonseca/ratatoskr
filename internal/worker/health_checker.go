@@ -48,7 +48,7 @@ func StartHealthCheckWorker(redisClient *redis.Client, groupName, consumerName s
 		results, err := redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
 			Group:    group,
 			Consumer: consumer,
-			Streams:  []string{"alerts", ">", "endpoints", ">", "ssl-checks", ">"},
+			Streams:  []string{"alerts", "endpoints", "ssl-checks", ">", ">", ">"},
 			Count:    10,
 			Block:    1 * time.Second,
 		}).Result()

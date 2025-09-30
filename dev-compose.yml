@@ -22,7 +22,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     command: -c /app/.worker.air.toml
     environment:
-      TASK_SLOT: '{{.Task.Slot}}'
+      TASK_SLOT: 1
     restart: unless-stopped
     working_dir: /app
     networks:
