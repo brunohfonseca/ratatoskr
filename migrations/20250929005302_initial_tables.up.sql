@@ -21,7 +21,9 @@ CREATE TABLE alert_groups (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     description TEXT,
-    created_at TIMESTAMPTZ DEFAULT now()
+    last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- Canais (slack, telegram, etc.)
@@ -30,7 +32,9 @@ CREATE TABLE alert_channels (
     type alert_channel_type NOT NULL,      -- slack, telegram, email
     name VARCHAR(50) NOT NULL,
     config JSONB NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
+    last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- Relação N:N entre grupos e canais
@@ -69,6 +73,7 @@ CREATE TABLE endpoint_ssl (
     issuer TEXT NOT NULL,
     status endpoint_ssl_status NOT NULL,
     last_check TIMESTAMPTZ DEFAULT now(),
+    last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -76,9 +81,11 @@ CREATE TABLE endpoint_ssl (
 -- Resultado da checagem SSL
 CREATE TABLE endpoint_auth (
     endpoint_id INT PRIMARY KEY REFERENCES endpoints(id) ON DELETE CASCADE,
-    type TEXT NOT NULL,         -- basic, bearer, api_key
-    config JSONB NOT NULL,      -- {"username":"x","password":"y"} ou {"token":"..."}
-    created_at TIMESTAMPTZ DEFAULT now()
+    type TEXT NOT NULL,
+    config JSONB NOT NULL,
+    last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- Autenticação de endpoints (JSONB flexível)
@@ -90,7 +97,9 @@ CREATE TABLE endpoint_checks (
     error_message TEXT,
     ssl_expiration_date TIMESTAMPTZ,
     ssl_issuer TEXT,
-    created_at TIMESTAMPTZ DEFAULT now()
+    last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- Histórico das checagens (time-series)
@@ -99,5 +108,6 @@ CREATE TABLE sent_alerts (
     endpoint_id INT NOT NULL REFERENCES endpoints(id) ON DELETE CASCADE,
     channel_id INT NOT NULL REFERENCES alert_channels(id) ON DELETE CASCADE,
     message TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
