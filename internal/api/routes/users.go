@@ -9,6 +9,5 @@ func setupUsersRoutes(router *gin.RouterGroup) {
 	users := router.Group("/users")
 	{
 		users.POST("/register", handlers.CreateUser)
-		users.POST("/login", handlers.Login)
 	}
 }

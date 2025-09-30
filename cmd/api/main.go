@@ -11,6 +11,7 @@ import (
 
 	"github.com/brunohfonseca/ratatoskr/internal/api"
 	"github.com/brunohfonseca/ratatoskr/internal/config"
+	"github.com/brunohfonseca/ratatoskr/internal/handlers"
 	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/rs/zerolog/log"
@@ -36,6 +37,11 @@ func main() {
 	err = postgres.Migrate(cfg.Database.PostgresURL)
 	if err != nil {
 		log.Fatal().Msgf("❌ Erro ao executar migrations no banco de dados: %v", err)
+	}
+
+	// Inicializa Keycloak SSO (se habilitado)
+	if err := handlers.InitKeycloak(); err != nil {
+		log.Warn().Err(err).Msg("⚠️ Failed to initialize Keycloak SSO")
 	}
 
 	c := make(chan os.Signal, 1)

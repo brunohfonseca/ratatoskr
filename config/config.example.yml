@@ -19,3 +19,10 @@ redis:
 jwt:
   jwt_secret: "change-this-secret-in-production-use-a-strong-random-string"
   jwt_expiration_hours: 24  # Token válido por 24 horas
+keycloak:
+  enabled: false  # true para habilitar SSO
+  url: "http://localhost:8080"  # URL do Keycloak
+  realm: "ratatoskr"
+  client_id: "ratatoskr-api"
+  client_secret: "your-client-secret"
+  redirect_url: "http://localhost:8443/auth/keycloak/callback"

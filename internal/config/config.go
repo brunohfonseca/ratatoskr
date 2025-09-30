@@ -43,6 +43,13 @@ type AppConfig struct {
 		JWTSecret          string `yaml:"jwt_secret"`
 		JWTExpirationHours int    `yaml:"jwt_expiration_hours"`
 	} `yaml:"jwt"`
+	Keycloak struct {
+		Enabled      bool   `yaml:"enabled"`
+		URL          string `yaml:"url"`
+		ClientID     string `yaml:"client_id"`
+		ClientSecret string `yaml:"client_secret"`
+		RedirectURL  string `yaml:"redirect_url"`
+	} `yaml:"keycloak"`
 	Alerts struct {
 		Slack struct {
 			Channel string `yaml:"channel"`

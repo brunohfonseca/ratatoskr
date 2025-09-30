@@ -14,6 +14,8 @@ func SetupRoutes(router *gin.Engine) {
 func setupAPIv1Routes(router *gin.Engine) {
 	api := router.Group("/api/v1")
 	{
+		// Auth routes - login e SSO
+		setupAuthRoutes(api)
 		// Services routes - monitoramento de serviços
 		setupEndpointsRoutes(api)
 		// Alerts routes - configuração de alertas
