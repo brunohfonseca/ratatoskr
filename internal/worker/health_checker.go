@@ -11,14 +11,14 @@ import (
 )
 
 // StartHealthCheckWorker inicia o worker que consome endpoints do Redis Stream
-func StartHealthCheckWorker(redisClient *redis.Client) {
+func StartHealthCheckWorker(redisClient *redis.Client, groupName, consumerName string) {
 	ctx := context.Background()
-	stream := "endpoints"
-	group := "health-checkers"
-	consumer := "worker-1"
+	group := groupName
+	consumer := consumerName
 
-	// Cria consumer group (ignora erro se já existir)
-	redisClient.XGroupCreateMkStream(ctx, stream, group, "0")
+	redisClient.XGroupCreateMkStream(ctx, "alerts", group, "0")
+	redisClient.XGroupCreateMkStream(ctx, "endpoints", group, "0")
+	redisClient.XGroupCreateMkStream(ctx, "ssl-checks", group, "0")
 
 	log.Info().Msg("🚀 Health Check Worker started")
 
@@ -27,7 +27,7 @@ func StartHealthCheckWorker(redisClient *redis.Client) {
 		results, err := redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
 			Group:    group,
 			Consumer: consumer,
-			Streams:  []string{stream, ">"},
+			Streams:  []string{"alerts", ">", "endpoints", ">", "ssl-checks", ">"},
 			Count:    10,
 			Block:    1 * time.Second,
 		}).Result()
@@ -39,10 +39,19 @@ func StartHealthCheckWorker(redisClient *redis.Client) {
 			continue
 		}
 
-		// Processa cada mensagem
+		// Processa mensagens
 		for _, result := range results {
+			streamName := result.Stream // "endpoints" ou "ssl-checks"
+
 			for _, msg := range result.Messages {
-				processEndpoint(ctx, redisClient, stream, group, msg)
+				log.Info().Str("stream", streamName).Msg("📨 Mensagem recebida")
+
+				// Processa baseado em qual stream veio
+				if streamName == "endpoints" {
+					processEndpoint(ctx, redisClient, streamName, group, msg)
+				} else if streamName == "ssl-checks" {
+					//processSSLCheck(ctx, redisClient, streamName, group, msg)
+				}
 			}
 		}
 	}

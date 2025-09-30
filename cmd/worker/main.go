@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"github.com/brunohfonseca/ratatoskr/internal/config"
 	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
@@ -25,8 +26,8 @@ func main() {
 		return
 	}
 
-	log.Info().Msg("🚀 Worker starting...")
-
+	workerName := cfg.Name + "-worker-" + os.Getenv("TASK_SLOT")
+	log.Info().Msgf("🚀 Worker %s starting...", workerName)
 	// Inicia o worker de health check
-	worker.StartHealthCheckWorker(redis.RedisClient)
+	worker.StartHealthCheckWorker(redis.RedisClient, cfg.Name, workerName)
 }
