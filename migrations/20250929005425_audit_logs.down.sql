@@ -1,5 +1,6 @@
 -- Drop trigger first (depends on endpoints table)
 DROP TRIGGER IF EXISTS endpoints_audit ON endpoints;
+DROP TRIGGER IF EXISTS users_audit ON users;
 DROP TRIGGER IF EXISTS alert_groups_audit ON alert_groups;
 DROP TRIGGER IF EXISTS alert_group_channels_audit ON alert_group_channels;
 DROP TRIGGER IF EXISTS alert_channels_audit ON alert_channels;

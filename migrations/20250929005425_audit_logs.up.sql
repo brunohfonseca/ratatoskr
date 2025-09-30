@@ -14,15 +14,25 @@ CREATE OR REPLACE FUNCTION log_table_changes()
 RETURNS TRIGGER AS $$
 DECLARE
     record_id_value TEXT;
-    user_id_value INT;
+    user_id_value INT := NULL;
 BEGIN
     -- Extrai o ID do registro (prioriza 'id', mas funciona com outros campos também)
     IF TG_OP = 'DELETE' THEN
         record_id_value := COALESCE(OLD.id::text, OLD.uuid::text, 'unknown');
-        user_id_value := OLD.last_modified_by;
+        -- Tenta pegar last_modified_by se existir
+        BEGIN
+            user_id_value := OLD.last_modified_by;
+        EXCEPTION WHEN undefined_column THEN
+            user_id_value := NULL;
+        END;
     ELSE
         record_id_value := COALESCE(NEW.id::text, NEW.uuid::text, 'unknown');
-        user_id_value := NEW.last_modified_by;
+        -- Tenta pegar last_modified_by se existir
+        BEGIN
+            user_id_value := NEW.last_modified_by;
+        EXCEPTION WHEN undefined_column THEN
+            user_id_value := NULL;
+        END;
     END IF;
 
     -- Log da operação
