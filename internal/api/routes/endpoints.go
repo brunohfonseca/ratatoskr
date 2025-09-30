@@ -15,9 +15,10 @@ func setupEndpointsRoutes(api *gin.RouterGroup) {
 		endpoints.GET("/:id/status", handlers.GetEndpointStatus)
 		endpoints.POST("/:id/health-check", handlers.TriggerHealthCheck)
 
-		// Rotas protegidas - requerem autenticação JWT
+		// Rotas protegidas - requerem autenticação JWT + Audit
 		authenticated := endpoints.Group("")
 		authenticated.Use(middlewares.AuthMiddleware())
+		authenticated.Use(middlewares.AuditMiddleware())
 		{
 			// CRUD básico de endpoints
 			authenticated.POST("/", handlers.CreateEndpoint)
