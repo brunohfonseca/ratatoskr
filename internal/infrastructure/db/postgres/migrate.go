@@ -2,12 +2,24 @@ package infra
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/rs/zerolog/log"
 )
+
+// migrateLogger implementa a interface Logger do migrate para logging customizado
+type migrateLogger struct{}
+
+func (l *migrateLogger) Printf(format string, v ...interface{}) {
+	log.Info().Str("migration", fmt.Sprintf(format, v...)).Send()
+}
+
+func (l *migrateLogger) Verbose() bool {
+	return true
+}
 
 func Migrate(uri string) error {
 	log.Info().Msg("🚀 Iniciando migrations no banco de dados")
@@ -40,9 +52,12 @@ func Migrate(uri string) error {
 		return err
 	}
 
+	// Ativa logging verbose
+	m.Log = &migrateLogger{}
+
 	if err := m.Up(); err != nil {
 		if err == migrate.ErrNoChange {
-			log.Info().Msg("ℹ️ Nenhuma migration pendente (ErrNoChange)")
+			log.Info().Msg("ℹ️Nenhuma migration pendente (ErrNoChange)")
 		} else {
 			log.Error().Msgf("❌ erro ao executar migrations no banco de dados: %v", err)
 			return err
