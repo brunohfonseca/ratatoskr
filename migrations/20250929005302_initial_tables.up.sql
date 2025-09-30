@@ -32,7 +32,7 @@ CREATE TABLE alert_groups (
 CREATE TABLE alert_channels (
     id SERIAL PRIMARY KEY,
     uuid UUID DEFAULT uuidv7(),
-    type alert_channel_type NOT NULL,      -- slack, telegram, email
+    type alert_channel_type NOT NULL,
     name VARCHAR(50) NOT NULL,
     config JSONB NOT NULL,
     last_modified_by INT REFERENCES users(id) ON DELETE SET NULL,
