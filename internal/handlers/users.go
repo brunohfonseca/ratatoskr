@@ -6,6 +6,7 @@ import (
 	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	"github.com/brunohfonseca/ratatoskr/internal/models"
 	"github.com/brunohfonseca/ratatoskr/internal/utils"
+	"github.com/brunohfonseca/ratatoskr/internal/utils/responses"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -13,12 +14,12 @@ import (
 func CreateUser(c *gin.Context) {
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		responses.Error(c, http.StatusBadRequest, err)
 		return
 	}
 	v7, err := uuid.NewV7()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		responses.Error(c, http.StatusInternalServerError, err)
 		return
 	}
 	hashedPassword, err := utils.HashPassword(user.Password)
@@ -35,10 +36,10 @@ func CreateUser(c *gin.Context) {
 		hashedPassword,
 	).Scan(&user.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		responses.Error(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{
+	responses.Success(c, http.StatusCreated, gin.H{
 		"message": "ok",
 		"id":      user.ID,
 		"uuid":    v7,
@@ -53,7 +54,7 @@ func Login(c *gin.Context) {
 	}
 
 	if err := c.BindJSON(&loginRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Email e senha são obrigatórios"})
+		responses.ErrorMsg(c, http.StatusUnauthorized, "Email and password are required")
 		return
 	}
 
@@ -72,32 +73,33 @@ func Login(c *gin.Context) {
 		&user.Enabled,
 	)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Email ou senha inválidos"})
+		responses.ErrorMsg(c, http.StatusUnauthorized, "Email or password is invalid")
 		return
 	}
 
 	// Verificar se o usuário está ativo
 	if !user.Enabled {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário desativado"})
+		responses.ErrorMsg(c, http.StatusUnauthorized, "User is disabled")
 		return
 	}
 
 	// Validar senha
 	isValid, err := utils.VerifyPassword(loginRequest.Password, passwordHash)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao validar senha"})
+		responses.ErrorMsg(c, http.StatusUnauthorized, "Error in password validation")
 		return
 	}
 
 	if !isValid {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Email ou senha inválidos"})
+		responses.ErrorMsg(c, http.StatusUnauthorized, "Email or password is invalid")
 		return
 	}
 
 	// Gerar JWT token
 	token, err := utils.GenerateJWT(user.ID, user.UUID, user.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao gerar token"})
+		ErrMsg := "Error in token generation: " + err.Error()
+		responses.ErrorMsg(c, http.StatusInternalServerError, ErrMsg)
 		return
 	}
 

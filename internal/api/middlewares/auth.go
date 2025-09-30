@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/brunohfonseca/ratatoskr/internal/utils"
+	"github.com/brunohfonseca/ratatoskr/internal/utils/responses"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,7 +15,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Extrair token do header Authorization
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token de autenticação não fornecido"})
+			responses.ErrorMsg(c, http.StatusUnauthorized, "Missing Authorization Bearer token")
 			c.Abort()
 			return
 		}
@@ -29,7 +30,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Validar token
 		claims, err := utils.ValidateJWT(tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido ou expirado"})
+			responses.ErrorMsg(c, http.StatusUnauthorized, "Invalid or expired token")
 			c.Abort()
 			return
 		}
