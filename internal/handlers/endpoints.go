@@ -161,7 +161,6 @@ func TriggerHealthCheck(c *gin.Context) {
 func GetEndpointHistory(c *gin.Context) {
 	id := c.Param("id")
 
-	// TODO: Buscar histórico no MongoDB
 	c.JSON(http.StatusOK, gin.H{
 		"service_id": id,
 		"history":    []gin.H{},

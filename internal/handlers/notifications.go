@@ -11,7 +11,6 @@ import (
 func ListAlerts(c *gin.Context) {
 	log.Info().Msg("Listando configurações de alerta")
 
-	// TODO: Implementar busca de alertas no MongoDB
 	c.JSON(http.StatusOK, gin.H{
 		"alerts":  []gin.H{},
 		"total":   0,
@@ -23,7 +22,6 @@ func ListAlerts(c *gin.Context) {
 func CreateAlert(c *gin.Context) {
 	log.Info().Msg("Criando nova configuração de alerta")
 
-	// TODO: Validar dados de entrada e salvar no MongoDB
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Alerta criado com sucesso (implementação pendente)",
 		"id":      "temp-alert-id",
@@ -35,7 +33,6 @@ func UpdateAlert(c *gin.Context) {
 	id := c.Param("id")
 	log.Info().Str("alert_id", id).Msg("Atualizando configuração de alerta")
 
-	// TODO: Validar dados e atualizar no MongoDB
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Alerta atualizado com sucesso (implementação pendente)",
 		"id":      id,
@@ -47,7 +44,6 @@ func DeleteAlert(c *gin.Context) {
 	id := c.Param("id")
 	log.Info().Str("alert_id", id).Msg("Removendo configuração de alerta")
 
-	// TODO: Remover do MongoDB
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Alerta removido com sucesso (implementação pendente)",
 		"id":      id,
@@ -61,7 +57,6 @@ func GetAlertsHistory(c *gin.Context) {
 	// Parâmetros opcionais
 	limit := c.DefaultQuery("limit", "50")
 
-	// TODO: Buscar histórico no MongoDB
 	c.JSON(http.StatusOK, gin.H{
 		"alerts":  []gin.H{},
 		"total":   0,

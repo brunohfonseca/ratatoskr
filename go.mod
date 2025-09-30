@@ -12,7 +12,6 @@ require (
 	github.com/redis/go-redis/v9 v9.14.0
 	github.com/rs/zerolog v1.34.0
 	github.com/slack-go/slack v0.17.3
-	go.mongodb.org/mongo-driver v1.17.4
 	golang.org/x/crypto v0.40.0
 	gopkg.in/yaml.v3 v3.0.1
 )

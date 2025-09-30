@@ -46,8 +46,8 @@ func ReadinessCheck(c *gin.Context) {
 
 	// Adicionar detalhes de erro se houver
 	if postgresErr != nil {
-		checks["mongodb"].(gin.H)["error"] = postgresErr.Error()
-		log.Warn().Err(postgresErr).Msg("MongoDB health check failed")
+		checks["postgres"].(gin.H)["error"] = postgresErr.Error()
+		log.Warn().Err(postgresErr).Msg("Postgres health check failed")
 	}
 
 	if redisErr != nil {
