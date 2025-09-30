@@ -5,6 +5,7 @@ import (
 
 	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	"github.com/brunohfonseca/ratatoskr/internal/models"
+	"github.com/brunohfonseca/ratatoskr/internal/utils/responses"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -13,26 +14,26 @@ import (
 func CreateService(c *gin.Context) {
 	var endpoint models.Endpoint
 	if err := c.BindJSON(&endpoint); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		responses.Error(c, http.StatusBadRequest, err)
 		return
 	}
 
 	// Extrair user_id do contexto (colocado pelo middleware JWT)
 	userIDInterface, exists := c.Get("id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
+		responses.ErrorMsg(c, http.StatusInternalServerError, "Usuário não autenticado")
 		return
 	}
 
 	userID, ok := userIDInterface.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "ID de usuário inválido"})
+		responses.ErrorMsg(c, http.StatusInternalServerError, "ID de usuário inválido")
 		return
 	}
 
 	v7, err := uuid.NewV7()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		responses.Error(c, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -47,14 +48,10 @@ func CreateService(c *gin.Context) {
 		userID,
 	).Scan(&endpoint.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		responses.Error(c, http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{
-		"message":     "ok",
-		"endpoint_id": endpoint.ID,
-		"endpoint":    endpoint,
-	})
+	responses.Success(c, http.StatusCreated, endpoint)
 }
 
 // ListServices lista todos os endpoints cadastrados
@@ -62,10 +59,19 @@ func ListServices(c *gin.Context) {
 	var endpoints []models.Endpoint
 
 	db := postgres.PostgresConn
-	sql := "SELECT id, uuid, name, domain, path, check_ssl, last_modified_by FROM endpoints"
+	sql := `
+		SELECT
+		    id,
+		    uuid,
+		    name,
+		    domain,
+		    path,
+		    check_ssl,
+		    last_modified_by 
+		FROM endpoints`
 	rows, err := db.Query(sql)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		responses.Error(c, http.StatusInternalServerError, err)
 		return
 	}
 	defer rows.Close()
@@ -85,7 +91,7 @@ func ListServices(c *gin.Context) {
 			&lastModifiedBy,
 		)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			responses.Error(c, http.StatusInternalServerError, err)
 			return
 		}
 
@@ -94,14 +100,11 @@ func ListServices(c *gin.Context) {
 
 	// Verificar se houve erro durante a iteração
 	if err = rows.Err(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		responses.Error(c, http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"total":     len(endpoints),
-		"endpoints": endpoints,
-	})
+	responses.Success(c, http.StatusOK, endpoints)
 }
 
 // GetService busca um endpoint específico por ID
