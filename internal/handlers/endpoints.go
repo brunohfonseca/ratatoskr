@@ -7,7 +7,6 @@ import (
 	"github.com/brunohfonseca/ratatoskr/internal/models"
 	"github.com/brunohfonseca/ratatoskr/internal/utils/responses"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // CreateEndpoint cria um novo endpoint
@@ -31,22 +30,15 @@ func CreateEndpoint(c *gin.Context) {
 		return
 	}
 
-	v7, err := uuid.NewV7()
-	if err != nil {
-		responses.Error(c, http.StatusInternalServerError, err)
-		return
-	}
-
 	db := postgres.PostgresConn
-	sql := "INSERT INTO endpoints (name, uuid, domain, path, check_ssl, last_modified_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
-	err = db.QueryRow(sql,
+	sql := "INSERT INTO endpoints (name, domain, path, check_ssl, last_modified_by) VALUES ($1, $2, $3, $4, $5) RETURNING uuid, status"
+	err := db.QueryRow(sql,
 		endpoint.Name,
-		v7,
 		endpoint.Domain,
 		endpoint.EndpointPath,
 		endpoint.CheckSSL,
 		userID,
-	).Scan(&endpoint.ID)
+	).Scan(&endpoint.UUID, &endpoint.Status)
 	if err != nil {
 		responses.Error(c, http.StatusInternalServerError, err)
 		return
@@ -65,6 +57,7 @@ func ListEndpoints(c *gin.Context) {
 		    uuid,
 		    name,
 		    domain,
+		    status,
 		    path,
 		    check_ssl,
 		    last_modified_by 
@@ -86,6 +79,7 @@ func ListEndpoints(c *gin.Context) {
 			&endpoint.UUID,
 			&endpoint.Name,
 			&endpoint.Domain,
+			&endpoint.Status,
 			&endpoint.EndpointPath,
 			&endpoint.CheckSSL,
 			&lastModifiedBy,
