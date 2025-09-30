@@ -26,7 +26,7 @@ func main() {
 		return
 	}
 
-	workerName := cfg.Name + "-worker-" + os.Getenv("TASK_SLOT")
+	workerName := cfg.Name + "-worker-" + os.Getenv("INSTANCE_ID")
 	log.Info().Msgf("🚀 Worker %s starting...", workerName)
 	// Inicia o worker de health check
 	worker.StartHealthCheckWorker(redis.RedisClient, cfg.Name, workerName)
