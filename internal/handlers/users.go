@@ -3,15 +3,15 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/brunohfonseca/ratatoskr/internal/entities"
 	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
+	"github.com/brunohfonseca/ratatoskr/internal/models"
 	"github.com/brunohfonseca/ratatoskr/internal/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 func CreateUser(c *gin.Context) {
-	var user entities.User
+	var user models.User
 	if err := c.BindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -60,7 +60,7 @@ func Login(c *gin.Context) {
 	db := postgres.PostgresConn
 
 	// Buscar usuário pelo email
-	var user entities.User
+	var user models.User
 	var passwordHash string
 	sql := "SELECT id, uuid, email, full_name, password_hash, enabled FROM users WHERE email = $1"
 	err := db.QueryRow(sql, loginRequest.Email).Scan(

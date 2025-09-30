@@ -3,15 +3,15 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/brunohfonseca/ratatoskr/internal/entities"
 	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
+	"github.com/brunohfonseca/ratatoskr/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 // CreateService cria um novo endpoint
 func CreateService(c *gin.Context) {
-	var endpoint entities.Endpoint
+	var endpoint models.Endpoint
 	if err := c.BindJSON(&endpoint); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -59,7 +59,7 @@ func CreateService(c *gin.Context) {
 
 // ListServices lista todos os endpoints cadastrados
 func ListServices(c *gin.Context) {
-	var endpoints []entities.Endpoint
+	var endpoints []models.Endpoint
 
 	db := postgres.PostgresConn
 	sql := "SELECT id, uuid, name, domain, path, check_ssl, last_modified_by FROM endpoints"
@@ -72,7 +72,7 @@ func ListServices(c *gin.Context) {
 
 	// Iterar sobre as rows e popular o slice
 	for rows.Next() {
-		var endpoint entities.Endpoint
+		var endpoint models.Endpoint
 		var lastModifiedBy *int
 
 		err := rows.Scan(
