@@ -16,3 +16,6 @@ database:
   postgres_url: "postgres://ratatoskr:ratatoskr123@127.0.0.1:5432/ratatoskr?sslmode=disable&application_name=ratatoskr-api"
 redis:
   redis_url: "redis://127.0.0.1:6379/0"
+jwt:
+  jwt_secret: "change-this-secret-in-production-use-a-strong-random-string"
+  jwt_expiration_hours: 24  # Token válido por 24 horas

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	"github.com/brunohfonseca/ratatoskr/internal/utils"
 	"github.com/brunohfonseca/ratatoskr/internal/utils/responses"
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,44 @@ func AuthMiddleware() gin.HandlerFunc {
 		claims, err := utils.ValidateJWT(tokenString)
 		if err != nil {
 			responses.ErrorMsg(c, http.StatusUnauthorized, "Invalid or expired token")
+			c.Abort()
+			return
+		}
+
+		// Validar se usuário ainda existe e dados batem com o banco
+		db := postgres.PostgresConn
+		var userID int
+		var userUUID, userEmail string
+		var enabled bool
+
+		err = db.QueryRow(
+			"SELECT id, uuid, email, enabled FROM users WHERE id = $1",
+			claims.UserID,
+		).Scan(&userID, &userUUID, &userEmail, &enabled)
+
+		if err != nil {
+			responses.ErrorMsg(c, http.StatusUnauthorized, "User not found")
+			c.Abort()
+			return
+		}
+
+		// Verifica se UUID do token bate com o do banco
+		if userUUID != claims.UserUUID {
+			responses.ErrorMsg(c, http.StatusUnauthorized, "Token invalidated - user data changed")
+			c.Abort()
+			return
+		}
+
+		// Verifica se email do token bate com o do banco
+		if userEmail != claims.Email {
+			responses.ErrorMsg(c, http.StatusUnauthorized, "Token invalidated - user data changed")
+			c.Abort()
+			return
+		}
+
+		// Verifica se usuário está habilitado
+		if !enabled {
+			responses.ErrorMsg(c, http.StatusUnauthorized, "User is disabled")
 			c.Abort()
 			return
 		}

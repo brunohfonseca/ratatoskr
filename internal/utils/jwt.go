@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -18,7 +19,12 @@ type Claims struct {
 
 // GenerateJWT gera um token JWT para o usuário
 func GenerateJWT(id int, uuid, email string) (string, error) {
-	expirationTime := time.Now().Add(24 * time.Hour) // Token válido por 24h
+	cfg := config.Get()
+
+	// Usa configuração do config.yml
+	expirationHours := time.Duration(cfg.JWT.JWTExpirationHours) * time.Hour
+	expirationTime := time.Now().Add(expirationHours)
+	jwtSecret := []byte(cfg.JWT.JWTSecret)
 
 	claims := &Claims{
 		UserID:   id,
@@ -42,6 +48,9 @@ func GenerateJWT(id int, uuid, email string) (string, error) {
 
 // ValidateJWT valida e extrai os claims de um token JWT
 func ValidateJWT(tokenString string) (*Claims, error) {
+	cfg := config.Get()
+	jwtSecret := []byte(cfg.JWT.JWTSecret)
+
 	claims := &Claims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {

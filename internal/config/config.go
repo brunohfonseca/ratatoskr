@@ -39,6 +39,10 @@ type AppConfig struct {
 	Redis struct {
 		RedisURL string `yaml:"redis_url"`
 	} `yaml:"redis"`
+	JWT struct {
+		JWTSecret          string `yaml:"jwt_secret"`
+		JWTExpirationHours int    `yaml:"jwt_expiration_hours"`
+	} `yaml:"jwt"`
 	Alerts struct {
 		Slack struct {
 			Channel string `yaml:"channel"`
