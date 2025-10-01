@@ -1,18 +1,21 @@
 package monitors
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
-	"strconv"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
-func FetchSSL(domain string, port int) (time.Time, error) {
+func ProcessSSLCheck(ctx context.Context, redisClient *redis.Client, stream, group string, msg redis.XMessage) {
+
+}
+
+func FetchSSL(domain string) (time.Time, error) {
 	host := domain
-	if _, _, err := net.SplitHostPort(domain); err != nil {
-		host = net.JoinHostPort(domain, strconv.Itoa(port))
-	}
 
 	dialer := &net.Dialer{
 		Timeout: 10 * time.Second,
