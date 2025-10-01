@@ -7,6 +7,7 @@ import (
 
 	"github.com/brunohfonseca/ratatoskr/internal/monitors"
 	"github.com/brunohfonseca/ratatoskr/internal/notifications"
+	"github.com/brunohfonseca/ratatoskr/internal/utils/logger"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 )
@@ -23,7 +24,7 @@ func StartWorker(ctx context.Context, redisClient *redis.Client, groupName, cons
 	// Cria os grupos (ou confirma que já existem)
 	for _, s := range streams {
 		if err := redisClient.XGroupCreateMkStream(ctx, s, groupName, "0").Err(); err != nil && !strings.Contains(err.Error(), "BUSYGROUP") {
-			log.Fatal().Err(err).Str("stream", s).Msg("❌ Failed to create consumer group")
+			logger.FatalLog("❌ Failed to create consumer group", err)
 		}
 	}
 
@@ -36,7 +37,7 @@ func StartWorker(ctx context.Context, redisClient *redis.Client, groupName, cons
 	for {
 		select {
 		case <-ctx.Done():
-			log.Info().Msg("🛑 Worker shutting down")
+			logger.InfoLog("🛑 Worker shutting down")
 			return
 
 		default:
@@ -52,16 +53,11 @@ func StartWorker(ctx context.Context, redisClient *redis.Client, groupName, cons
 				if err == redis.Nil {
 					continue // timeout sem mensagens
 				}
-				log.Fatal().Err(err).Msg("❌ Fatal error reading from stream")
+				logger.FatalLog("❌ Fatal error reading from stream", err)
 			}
 
 			for _, res := range results {
 				for _, msg := range res.Messages {
-					log.Info().
-						Str("stream", res.Stream).
-						Str("id", msg.ID).
-						Msg("📨 Mensagem recebida")
-
 					switch res.Stream {
 					case "endpoints":
 						monitors.ProcessEndpoint(ctx, redisClient, res.Stream, groupName, msg)
@@ -72,10 +68,10 @@ func StartWorker(ctx context.Context, redisClient *redis.Client, groupName, cons
 					}
 
 					if _, err := redisClient.XAck(ctx, res.Stream, groupName, msg.ID).Result(); err != nil {
-						log.Fatal().Err(err).Str("id", msg.ID).Msg("❌ Failed to ACK message")
+						logger.FatalStrLog("❌ Failed to ACK message", "id", msg.ID)
 					}
 					if _, err := redisClient.XDel(ctx, res.Stream, msg.ID).Result(); err != nil {
-						log.Fatal().Err(err).Str("id", msg.ID).Msg("❌ Failed to delete message")
+						logger.FatalStrLog("❌ Failed to delete message", "id", msg.ID)
 					}
 				}
 			}

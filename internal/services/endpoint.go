@@ -14,12 +14,14 @@ import (
 func CreateEndpoint(endpoint *models.Endpoint, userID int) error {
 	db := postgres.PostgresConn
 
-	sql := "INSERT INTO endpoints (name, domain, path, check_ssl, last_modified_by) VALUES ($1, $2, $3, $4, $5) RETURNING uuid, status"
+	sql := "INSERT INTO endpoints (name, domain, path, check_ssl, expected_response_code, timeout_seconds, last_modified_by) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING uuid, status"
 	err := db.QueryRow(sql,
 		endpoint.Name,
 		endpoint.Domain,
 		endpoint.EndpointPath,
 		endpoint.CheckSSL,
+		endpoint.ExpectedResponseCode,
+		endpoint.TimeoutSeconds,
 		userID,
 	).Scan(&endpoint.UUID, &endpoint.Status)
 	if err != nil {

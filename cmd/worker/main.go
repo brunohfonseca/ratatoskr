@@ -10,8 +10,8 @@ import (
 	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/bootstrap"
 	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
+	"github.com/brunohfonseca/ratatoskr/internal/utils/logger"
 	"github.com/brunohfonseca/ratatoskr/internal/worker"
-	"github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -29,11 +29,11 @@ func main() {
 		worker.StartWorker(ctx, redis.RedisClient, cfg.Name, workerName)
 	}()
 
-	log.Info().Msg("🚀 Worker iniciado! Pressione Ctrl+C para finalizar.")
+	logger.InfoLog("🚀 Worker iniciado! Pressione Ctrl+C para finalizar.")
 	<-ctx.Done()
 
-	log.Info().Msg("🛑 Finalizando worker...")
+	logger.InfoLog("🛑 Finalizando worker...")
 	redis.DisconnectWorkerRedis(cfg.Name, workerName)
 	postgres.DisconnectPostgres()
-	log.Info().Msg("✅ Worker finalizado com sucesso!")
+	logger.InfoLog("✅ Worker finalizado com sucesso!")
 }
