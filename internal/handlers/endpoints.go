@@ -125,32 +125,6 @@ func DeleteEndpoint(c *gin.Context) {
 	})
 }
 
-// GetEndpointStatus retorna o status atual do serviço
-func GetEndpointStatus(c *gin.Context) {
-	id := c.Param("id")
-
-	// TODO: Implementar verificação real de status
-	c.JSON(http.StatusOK, gin.H{
-		"service_id":    id,
-		"status":        "online",
-		"last_check":    "2024-01-01T00:00:00Z",
-		"response_time": 120,
-		"message":       "Status do serviço (implementação pendente)",
-	})
-}
-
-// TriggerHealthCheck força uma verificação de health check
-func TriggerHealthCheck(c *gin.Context) {
-	id := c.Param("id")
-
-	// TODO: Implementar health check real
-	c.JSON(http.StatusOK, gin.H{
-		"service_id": id,
-		"status":     "check_triggered",
-		"message":    "Health check iniciado (implementação pendente)",
-	})
-}
-
 // GetEndpointHistory retorna o histórico de health checks
 func GetEndpointHistory(c *gin.Context) {
 	id := c.Param("id")
@@ -177,5 +151,19 @@ func GetEndpointUptime(c *gin.Context) {
 			"failed_checks":     1,
 		},
 		"message": "Estatísticas de uptime (implementação pendente)",
+	})
+}
+
+func CheckEndpoint(c *gin.Context) {
+	uuid := c.Param("uuid")
+
+	if uuid == "" {
+		responses.ErrorMsg(c, http.StatusBadRequest, "UUID do endpoint não informado")
+		return
+	}
+
+	responses.Success(c, http.StatusOK, gin.H{
+		"uuid":    uuid,
+		"message": "Endpoint adicionado a fila de verificação",
 	})
 }

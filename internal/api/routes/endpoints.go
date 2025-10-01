@@ -11,24 +11,20 @@ func setupEndpointsRoutes(api *gin.RouterGroup) {
 
 	endpoints := api.Group("/endpoints")
 	{
-		// Health check e status (rotas públicas para monitoramento)
-		endpoints.GET("/:id/status", handlers.GetEndpointStatus)
-		endpoints.POST("/:id/health-check", handlers.TriggerHealthCheck)
-
 		// Rotas protegidas - requerem autenticação JWT + Audit
 		authenticated := endpoints.Group("")
 		authenticated.Use(middlewares.AuthMiddleware())
 		authenticated.Use(middlewares.AuditMiddleware())
 		{
 			// CRUD básico de endpoints
-			authenticated.POST("/", handlers.CreateEndpoint)
-			authenticated.GET("/", handlers.ListEndpoints)
-			authenticated.GET("/:id", handlers.GetEndpoint)
-			authenticated.PUT("/:id", handlers.UpdateEndpoint)
-			authenticated.DELETE("/:id", handlers.DeleteEndpoint)
-			// Histórico de health checks
-			authenticated.GET("/:id/history", handlers.GetEndpointHistory)
-			authenticated.GET("/:id/uptime", handlers.GetEndpointUptime)
+			authenticated.POST("/create", handlers.CreateEndpoint)
+			authenticated.GET("/list", handlers.ListEndpoints)
+			authenticated.PUT("/update/:id", handlers.UpdateEndpoint)
+			authenticated.GET("/get/:id", handlers.GetEndpoint)
+			authenticated.GET("/get/:id/history", handlers.GetEndpointHistory)
+			authenticated.GET("/get/:id/uptime", handlers.GetEndpointUptime)
+			authenticated.DELETE("/delete/:id", handlers.DeleteEndpoint)
+			authenticated.POST("/check/:uuid", handlers.CheckEndpoint)
 		}
 	}
 }

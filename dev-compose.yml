@@ -3,8 +3,8 @@ services:
     image: cosmtrek/air
     container_name: ratatoskr-api
     ports:
-      - "8080:8080"
-      - "8443:8443"
+      - "80:8080"
+      - "443:8443"
     volumes:
       - ./:/app
       - /etc/localtime:/etc/localtime:ro
