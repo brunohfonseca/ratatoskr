@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/brunohfonseca/ratatoskr/internal/config"
+	"github.com/brunohfonseca/ratatoskr/internal/infrastructure/bootstrap"
 	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	redis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/brunohfonseca/ratatoskr/internal/worker"
@@ -18,16 +18,7 @@ func main() {
 	configFile := flag.String("config", "/app/worker-config.yml", "Arquivo de configuração")
 	flag.Parse()
 
-	config.SetupLogs()
-	if _, err := config.LoadConfig(*configFile); err != nil {
-		log.Fatal().Err(err).Msg("❌ Erro ao carregar config")
-	}
-
-	cfg := config.Get()
-	if cfg == nil {
-		log.Fatal().Msg("❌ Configuração não carregada")
-		return
-	}
+	cfg := bootstrap.InitializeWorker(*configFile)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

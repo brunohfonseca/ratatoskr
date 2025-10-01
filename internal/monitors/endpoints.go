@@ -52,9 +52,14 @@ func doHealthCheck(url string, timeout int) models.EndpointResponse {
 		return models.EndpointResponse{
 			ResponseStatusCode: resp.StatusCode,
 			ResponseMessage:    err.Error(),
+			ResponseTime:       int(time.Since(start).Milliseconds()),
 		}
 	}
 	defer resp.Body.Close()
 
-	return models.EndpointResponse{}
+	return models.EndpointResponse{
+		ResponseStatusCode: resp.StatusCode,
+		ResponseMessage:    "Success",
+		ResponseTime:       int(time.Since(start).Milliseconds()),
+	}
 }

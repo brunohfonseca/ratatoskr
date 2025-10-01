@@ -57,7 +57,7 @@ func Migrate(uri string) error {
 
 	if err := m.Up(); err != nil {
 		if err == migrate.ErrNoChange {
-			log.Info().Msg("ℹ️Nenhuma migration pendente (ErrNoChange)")
+			log.Info().Msg("ℹ ️Nenhuma migration pendente (ErrNoChange)")
 		} else {
 			log.Error().Msgf("❌ erro ao executar migrations no banco de dados: %v", err)
 			return err

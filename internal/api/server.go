@@ -15,7 +15,7 @@ import (
 
 // setupRouter configura o router com middlewares e configurações básicas
 func setupRouter(cfg *config.AppConfig) *gin.Engine {
-	if !cfg.Server.Debug {
+	if cfg.Environment != "development" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -41,7 +41,7 @@ func setupRouter(cfg *config.AppConfig) *gin.Engine {
 	routes.SetupRoutes(router)
 
 	// Se estiver em modo debug, imprimir as rotas registradas
-	if cfg.Server.Debug {
+	if cfg.Environment == "development" {
 		printRoutes(router)
 	}
 

@@ -26,7 +26,6 @@ type AppConfig struct {
 	Environment string `yaml:"environment"`
 	Server      struct {
 		Port           int      `yaml:"port"`
-		Debug          bool     `yaml:"debug"`
 		TrustedProxies []string `yaml:"trusted_proxies"`
 		SSL            struct {
 			Enabled bool   `yaml:"enabled"`
