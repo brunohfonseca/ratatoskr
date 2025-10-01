@@ -32,8 +32,11 @@ func CreateEndpoint(endpoint *models.Endpoint, userID int) error {
 		Stream: "endpoints",
 		Values: map[string]interface{}{
 			"uuid":      endpoint.UUID,
+			"name":      endpoint.Name,
 			"domain":    endpoint.Domain,
 			"path":      endpoint.EndpointPath,
+			"timeout":   endpoint.Timeout,
+			"interval":  endpoint.Interval,
 			"check_ssl": endpoint.CheckSSL,
 		},
 	}

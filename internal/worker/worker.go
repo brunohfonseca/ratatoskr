@@ -74,6 +74,9 @@ func StartWorker(ctx context.Context, redisClient *redis.Client, groupName, cons
 					if _, err := redisClient.XAck(ctx, res.Stream, groupName, msg.ID).Result(); err != nil {
 						log.Fatal().Err(err).Str("id", msg.ID).Msg("❌ Failed to ACK message")
 					}
+					if _, err := redisClient.XDel(ctx, res.Stream, msg.ID).Result(); err != nil {
+						log.Fatal().Err(err).Str("id", msg.ID).Msg("❌ Failed to delete message")
+					}
 				}
 			}
 		}
