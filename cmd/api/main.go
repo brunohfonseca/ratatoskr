@@ -48,13 +48,11 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	srv := api.ServerStart(cfg)
-	// inicia servidor em goroutine
 	go func() {
 		if cfg.Server.SSL.Enabled {
 			if err := srv.ListenAndServeTLS(cfg.Server.SSL.Cert, cfg.Server.SSL.Key); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Fatal().Msgf("❌ Erro ao iniciar servidor SSL: %v", err)
 			}
-
 		} else {
 			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 				log.Fatal().Msgf("❌ Erro ao iniciar servidor: %v", err)
