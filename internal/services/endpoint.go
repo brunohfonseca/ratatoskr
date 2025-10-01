@@ -7,6 +7,7 @@ import (
 	infraRedis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/brunohfonseca/ratatoskr/internal/models"
 	"github.com/redis/go-redis/v9"
+	"github.com/rs/zerolog/log"
 )
 
 // CreateEndpoint salva o endpoint no banco e envia pro Redis
@@ -21,16 +22,13 @@ func CreateEndpoint(endpoint *models.Endpoint, userID int) error {
 		endpoint.CheckSSL,
 		userID,
 	).Scan(&endpoint.UUID, &endpoint.Status)
-
 	if err != nil {
 		return err
 	}
 
 	// Envia pro Redis Stream
 	ctx := context.Background()
-	redisClient := infraRedis.RedisClient
-
-	_, err = redisClient.XAdd(ctx, &redis.XAddArgs{
+	redisXValues := &redis.XAddArgs{
 		Stream: "endpoints",
 		Values: map[string]interface{}{
 			"uuid":      endpoint.UUID,
@@ -38,7 +36,12 @@ func CreateEndpoint(endpoint *models.Endpoint, userID int) error {
 			"path":      endpoint.EndpointPath,
 			"check_ssl": endpoint.CheckSSL,
 		},
-	}).Result()
+	}
+	err = infraRedis.StreamPublish(ctx, redisXValues)
+	if err != nil {
+		log.Error().Err(err).Msg("⚠️ Erro ao publicar no Redis")
+		return err
+	}
 
 	return err
 }
