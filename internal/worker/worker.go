@@ -11,8 +11,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// StartHealthCheckWorker inicia o worker que consome endpoints do Redis Stream
-func StartHealthCheckWorker(ctx context.Context, redisClient *redis.Client, groupName, consumerName string) {
+// StartWorker inicia o worker que consome endpoints do Redis Stream
+func StartWorker(ctx context.Context, redisClient *redis.Client, groupName, consumerName string) {
 	streams := []string{"alerts", "endpoints", "ssl-checks"}
 
 	log.Info().
