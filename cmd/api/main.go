@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/brunohfonseca/ratatoskr/internal/api"
 	"github.com/brunohfonseca/ratatoskr/internal/config"
@@ -22,9 +23,8 @@ func main() {
 	flag.Parse()
 
 	config.SetupLogs()
-	_, err := config.LoadConfig(*configFile)
-	if err != nil {
-		log.Fatal().Msgf("❌ Erro ao carregar config: %v", err)
+	if _, err := config.LoadConfig(*configFile); err != nil {
+		log.Fatal().Err(err).Msg("❌ Erro ao carregar config")
 	}
 
 	cfg := config.Get()
@@ -33,42 +33,43 @@ func main() {
 		return
 	}
 
-	//Executa as migrations
-	err = postgres.Migrate(cfg.Database.PostgresURL)
-	if err != nil {
-		log.Fatal().Msgf("❌ Erro ao executar migrations no banco de dados: %v", err)
+	if err := postgres.Migrate(cfg.Database.PostgresURL); err != nil {
+		log.Fatal().Err(err).Msg("❌ Erro ao executar migrations no banco")
 	}
 
-	// Inicializa Keycloak SSO (se habilitado)
 	if err := handlers.InitKeycloak(); err != nil {
 		log.Warn().Err(err).Msg("⚠️ Failed to initialize Keycloak SSO")
 	}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-
 	srv := api.ServerStart(cfg)
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	go func() {
+		var err error
 		if cfg.Server.SSL.Enabled {
-			if err := srv.ListenAndServeTLS(cfg.Server.SSL.Cert, cfg.Server.SSL.Key); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				log.Fatal().Msgf("❌ Erro ao iniciar servidor SSL: %v", err)
-			}
+			err = srv.ListenAndServeTLS(cfg.Server.SSL.Cert, cfg.Server.SSL.Key)
 		} else {
-			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				log.Fatal().Msgf("❌ Erro ao iniciar servidor: %v", err)
-			}
+			err = srv.ListenAndServe()
+		}
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal().Err(err).Msg("❌ Erro ao iniciar servidor")
 		}
 	}()
 
-	log.Info().Msg("🚀 Servidor iniciado! Pressione Ctrl+C para finalizar.")
+	log.Info().Msg("🚀 API iniciada! Pressione Ctrl+C para finalizar.")
 
-	// Aguardar sinal de parada
-	<-c
-	fmt.Println("") //Quebra de Linha no CTRL+C
-	log.Info().Msg("🛑 Sinal de parada recebido. Finalizando aplicação...")
+	<-ctx.Done()
+	log.Info().Msg("🛑 Parando API...")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Error().Err(err).Msg("⚠️ Erro ao finalizar servidor")
+	}
 
 	redis.DisconnectRedis()
 	postgres.DisconnectPostgres()
-
-	log.Info().Msg("✅ Aplicação finalizada com sucesso!")
+	log.Info().Msg("✅ API finalizada com sucesso!")
 }

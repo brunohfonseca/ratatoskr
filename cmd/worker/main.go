@@ -1,8 +1,8 @@
 package main
 
 import (
+	"context"
 	"flag"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -19,9 +19,8 @@ func main() {
 	flag.Parse()
 
 	config.SetupLogs()
-	_, err := config.LoadConfig(*configFile)
-	if err != nil {
-		log.Fatal().Msgf("❌ Erro ao carregar config: %v", err)
+	if _, err := config.LoadConfig(*configFile); err != nil {
+		log.Fatal().Err(err).Msg("❌ Erro ao carregar config")
 	}
 
 	cfg := config.Get()
@@ -30,24 +29,20 @@ func main() {
 		return
 	}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	workerName := cfg.Name + "-worker-" + os.Getenv("HOSTNAME")
 
 	go func() {
-		// Inicia o worker de health check
 		worker.StartHealthCheckWorker(redis.RedisClient, cfg.Name, workerName)
 	}()
 
-	log.Info().Msg("🚀 Servidor iniciado! Pressione Ctrl+C para finalizar.")
+	log.Info().Msg("🚀 Worker iniciado! Pressione Ctrl+C para finalizar.")
+	<-ctx.Done()
 
-	<-c
-	fmt.Println("") //Quebra de Linha no CTRL+C
-	log.Info().Msg("🛑 Sinal de parada recebido. Finalizando aplicação...")
-
+	log.Info().Msg("🛑 Finalizando worker...")
 	redis.DisconnectRedis()
 	postgres.DisconnectPostgres()
-
-	log.Info().Msg("✅ Aplicação finalizada com sucesso!")
+	log.Info().Msg("✅ Worker finalizado com sucesso!")
 }
