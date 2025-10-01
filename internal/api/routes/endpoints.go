@@ -17,14 +17,16 @@ func setupEndpointsRoutes(api *gin.RouterGroup) {
 		authenticated.Use(middlewares.AuditMiddleware())
 		{
 			// CRUD básico de endpoints
-			authenticated.POST("/create", handlers.CreateEndpoint)
-			authenticated.GET("/list", handlers.ListEndpoints)
+			authenticated.POST("/", handlers.CreateEndpoint)
+			authenticated.GET("/", handlers.ListEndpoints)
+			authenticated.GET("/show/:id", handlers.GetEndpoint)
 			authenticated.PUT("/update/:id", handlers.UpdateEndpoint)
-			authenticated.GET("/get/:id", handlers.GetEndpoint)
-			authenticated.GET("/get/:id/history", handlers.GetEndpointHistory)
-			authenticated.GET("/get/:id/uptime", handlers.GetEndpointUptime)
 			authenticated.DELETE("/delete/:id", handlers.DeleteEndpoint)
-			authenticated.POST("/check/:uuid", handlers.CheckEndpoint)
+			// Histórico de health checks
+			authenticated.GET("/:id/history", handlers.GetEndpointHistory)
+			authenticated.GET("/:id/uptime", handlers.GetEndpointUptime)
+			// Roda o Check do endpoint
+			authenticated.POST("/check/", handlers.CheckEndpoint)
 		}
 	}
 }

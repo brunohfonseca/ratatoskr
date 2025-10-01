@@ -155,15 +155,19 @@ func GetEndpointUptime(c *gin.Context) {
 }
 
 func CheckEndpoint(c *gin.Context) {
-	uuid := c.Param("uuid")
+	var endpoint models.Endpoint
+	if err := c.BindJSON(&endpoint); err != nil {
+		responses.Error(c, http.StatusBadRequest, err)
+		return
+	}
 
-	if uuid == "" {
+	if endpoint.UUID == "" {
 		responses.ErrorMsg(c, http.StatusBadRequest, "UUID do endpoint não informado")
 		return
 	}
 
 	responses.Success(c, http.StatusOK, gin.H{
-		"uuid":    uuid,
+		"uuid":    endpoint.UUID,
 		"message": "Endpoint adicionado a fila de verificação",
 	})
 }
