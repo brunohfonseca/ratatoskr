@@ -1,13 +1,18 @@
 package handlers
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 
 	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
+	infraRedis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/brunohfonseca/ratatoskr/internal/models"
 	"github.com/brunohfonseca/ratatoskr/internal/services"
+	"github.com/brunohfonseca/ratatoskr/internal/utils/logger"
 	"github.com/brunohfonseca/ratatoskr/internal/utils/responses"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
 // CreateEndpoint cria um novo endpoint
@@ -166,8 +171,36 @@ func CheckEndpoint(c *gin.Context) {
 		return
 	}
 
+	ep, err := services.GetEndpointByUUID(endpoint.UUID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			responses.ErrorMsg(c, http.StatusNotFound, "Endpoint não encontrado")
+		} else {
+			responses.Error(c, http.StatusInternalServerError, err)
+		}
+		return
+	}
+
+	logger.DebugLog("Endpoint localizado: " + ep.Name)
+
+	err = infraRedis.StreamPublish(c, &redis.XAddArgs{
+		Stream: "endpoints",
+		Values: map[string]interface{}{
+			"uuid":      endpoint.UUID,
+			"name":      endpoint.Name,
+			"domain":    endpoint.Domain,
+			"path":      endpoint.EndpointPath,
+			"timeout":   endpoint.Timeout,
+			"check_ssl": endpoint.CheckSSL,
+		},
+	})
+	if err != nil {
+		responses.Error(c, http.StatusInternalServerError, err)
+		return
+	}
+
 	responses.Success(c, http.StatusOK, gin.H{
-		"uuid":    endpoint.UUID,
+		"uuid":    ep.UUID,
 		"message": "Endpoint adicionado a fila de verificação",
 	})
 }

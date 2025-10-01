@@ -9,8 +9,8 @@ import (
 
 	"github.com/brunohfonseca/ratatoskr/internal/models"
 	"github.com/brunohfonseca/ratatoskr/internal/services"
+	"github.com/brunohfonseca/ratatoskr/internal/utils/logger"
 	"github.com/redis/go-redis/v9"
-	"github.com/rs/zerolog/log"
 )
 
 func ProcessEndpoint(ctx context.Context, redisClient *redis.Client, stream, group string, msg redis.XMessage) {
@@ -20,15 +20,8 @@ func ProcessEndpoint(ctx context.Context, redisClient *redis.Client, stream, gro
 	uuid, _ := msg.Values["uuid"].(string)
 	domain, _ := msg.Values["domain"].(string)
 	path, _ := msg.Values["path"].(string)
+	timeout, _ := msg.Values["timeout"].(int)
 	checkSSLStr, _ := msg.Values["check_ssl"].(string)
-
-	// Timeout com valor padrão de 30 segundos
-	timeout := 30
-	if timeoutVal, ok := msg.Values["timeout"].(int64); ok {
-		timeout = int(timeoutVal)
-	} else if timeoutVal, ok := msg.Values["timeout"].(int); ok {
-		timeout = timeoutVal
-	}
 
 	url := fmt.Sprintf("%s/%s", domain, path)
 	doHealthCheck(url, timeout)
@@ -42,7 +35,8 @@ func ProcessEndpoint(ctx context.Context, redisClient *redis.Client, stream, gro
 		}
 	}
 
-	log.Info().Msgf("✅ Health check completed in %s", uuid)
+	logMsg := fmt.Sprintf("✅ Health check completed in %s", uuid)
+	logger.DebugLog(logMsg)
 }
 
 func doHealthCheck(url string, timeout int) models.EndpointResponse {

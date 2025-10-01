@@ -30,7 +30,7 @@ func CreateEndpoint(endpoint *models.Endpoint, userID int) error {
 
 	// Envia pro Redis Stream
 	ctx := context.Background()
-	redisXValues := &redis.XAddArgs{
+	err = infraRedis.StreamPublish(ctx, &redis.XAddArgs{
 		Stream: "endpoints",
 		Values: map[string]interface{}{
 			"uuid":      endpoint.UUID,
@@ -38,11 +38,9 @@ func CreateEndpoint(endpoint *models.Endpoint, userID int) error {
 			"domain":    endpoint.Domain,
 			"path":      endpoint.EndpointPath,
 			"timeout":   endpoint.Timeout,
-			"interval":  endpoint.Interval,
 			"check_ssl": endpoint.CheckSSL,
 		},
-	}
-	err = infraRedis.StreamPublish(ctx, redisXValues)
+	})
 	if err != nil {
 		log.Error().Err(err).Msg("⚠️ Erro ao publicar no Redis")
 		return err
@@ -57,23 +55,29 @@ func UpdateCheck(endpoint models.Endpoint) {
 	//sql := "UPDATE endpoints SET status = $1 WHERE uuid = $2"
 }
 
-func GetEndpointByUUID(uuid string) (interface{}, error) {
+func GetEndpointByUUID(uuid string) (models.Endpoint, error) {
+	var endpoint models.Endpoint
 	db := postgres.PostgresConn
 
 	sql := `
 		SELECT 
 			uuid,
+			name,
 			expected_response_code,
 			timeout_seconds, 
 			alert_group_id
 		FROM endpoints
 		WHERE uuid = $1
 	`
-	row := db.QueryRow(sql, uuid)
-	var endpoint models.Endpoint
-	err := row.Scan(&endpoint.UUID, &endpoint.ExpectedResponseCode, &endpoint.TimeoutSeconds, &endpoint.AlertGroupID)
+	err := db.QueryRow(sql, uuid).Scan(
+		&endpoint.UUID,
+		&endpoint.Name,
+		&endpoint.ExpectedResponseCode,
+		&endpoint.TimeoutSeconds,
+		&endpoint.AlertGroupID,
+	)
 	if err != nil {
-		return "", err
+		return models.Endpoint{}, err
 	}
 
 	return endpoint, nil
