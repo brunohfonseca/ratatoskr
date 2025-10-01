@@ -35,7 +35,7 @@ func main() {
 	workerName := cfg.Name + "-worker-" + os.Getenv("HOSTNAME")
 
 	go func() {
-		worker.StartHealthCheckWorker(redis.RedisClient, cfg.Name, workerName)
+		worker.StartHealthCheckWorker(ctx, redis.RedisClient, cfg.Name, workerName)
 	}()
 
 	log.Info().Msg("🚀 Worker iniciado! Pressione Ctrl+C para finalizar.")

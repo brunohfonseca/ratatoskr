@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -11,79 +12,66 @@ import (
 )
 
 // StartHealthCheckWorker inicia o worker que consome endpoints do Redis Stream
-func StartHealthCheckWorker(redisClient *redis.Client, groupName, consumerName string) {
-	ctx := context.Background()
+func StartHealthCheckWorker(ctx context.Context, redisClient *redis.Client, groupName, consumerName string) {
+	streams := []string{"alerts", "endpoints", "ssl-checks"}
 
 	log.Info().
 		Str("group", groupName).
 		Str("consumer", consumerName).
-		Msg("Initializing worker...")
+		Msg("🚀 Starting")
 
-	// Cria consumer groups para cada stream
-	streams := []string{"alerts", "endpoints", "ssl-checks"}
-
-	for _, stream := range streams {
-		err := redisClient.XGroupCreateMkStream(ctx, stream, groupName, "0").Err()
-		if err != nil {
-			// Ignora se grupo já existe
-			if err.Error() == "BUSYGROUP Consumer Group name already exists" {
-				log.Info().Str("stream", stream).Str("group", groupName).Msg("Consumer group already exists")
-			} else {
-				log.Error().Err(err).Str("stream", stream).Str("group", groupName).Msg("Failed to create consumer group")
-			}
-		} else {
-			log.Info().Str("stream", stream).Str("group", groupName).Msg("Consumer group created")
+	// Cria os grupos (ou confirma que já existem)
+	for _, s := range streams {
+		if err := redisClient.XGroupCreateMkStream(ctx, s, groupName, "0").Err(); err != nil && !strings.Contains(err.Error(), "BUSYGROUP") {
+			log.Fatal().Err(err).Str("stream", s).Msg("❌ Failed to create consumer group")
 		}
 	}
 
-	// Pequeno delay para garantir que Redis processou
-	time.Sleep(100 * time.Millisecond)
-
-	log.Info().Str("consumer", consumerName).Str("group", groupName).Msg("🚀 Consumer started")
+	// [keys..., ids...]
+	streamArgs := append([]string{}, streams...)
+	for range streams {
+		streamArgs = append(streamArgs, ">")
+	}
 
 	for {
-		// Lê mensagens do stream
-		results, err := redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
-			Group:    groupName,
-			Consumer: consumerName,
-			Streams:  []string{"alerts", "endpoints", "ssl-checks", ">", ">", ">"},
-			Count:    10,
-			Block:    1 * time.Second,
-		}).Result()
+		select {
+		case <-ctx.Done():
+			log.Info().Msg("🛑 Worker shutting down")
+			return
 
-		if err != nil {
-			if err != redis.Nil {
-				// Se for erro de grupo não encontrado, loga e para
-				if err.Error() == "NOGROUP No such key '>' or consumer group '"+groupName+"' in XREADGROUP with GROUP option" {
-					log.Fatal().
-						Err(err).
-						Str("group", groupName).
-						Str("consumer", consumerName).
-						Msg("❌ Consumer group not found - stopping worker")
+		default:
+			results, err := redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
+				Group:    groupName,
+				Consumer: consumerName,
+				Streams:  streamArgs,
+				Block:    time.Second,
+				Count:    10,
+			}).Result()
+
+			if err != nil {
+				if err == redis.Nil {
+					continue // timeout sem mensagens
 				}
-
-				// Outros erros também param
-				log.Fatal().
-					Err(err).
-					Str("group", groupName).
-					Str("consumer", consumerName).
-					Msg("❌ Fatal error reading from stream - stopping worker")
+				log.Fatal().Err(err).Msg("❌ Fatal error reading from stream")
 			}
-			continue
-		}
 
-		// Processa mensagens
-		for _, result := range results {
-			streamName := result.Stream // "endpoints" ou "ssl-checks"
+			for _, res := range results {
+				for _, msg := range res.Messages {
+					log.Info().
+						Str("stream", res.Stream).
+						Str("id", msg.ID).
+						Msg("📨 Mensagem recebida")
 
-			for _, msg := range result.Messages {
-				log.Info().Str("stream", streamName).Msg("📨 Mensagem recebida")
+					switch res.Stream {
+					case "endpoints":
+						processEndpoint(ctx, redisClient, res.Stream, groupName, msg)
+					case "ssl-checks":
+						// processSSLCheck(ctx, redisClient, res.Stream, groupName, msg)
+					}
 
-				// Processa baseado em qual stream veio
-				if streamName == "endpoints" {
-					processEndpoint(ctx, redisClient, streamName, groupName, msg)
-				} else if streamName == "ssl-checks" {
-					//processSSLCheck(ctx, redisClient, streamName, group, msg)
+					if _, err := redisClient.XAck(ctx, res.Stream, groupName, msg.ID).Result(); err != nil {
+						log.Fatal().Err(err).Str("id", msg.ID).Msg("❌ Failed to ACK message")
+					}
 				}
 			}
 		}
