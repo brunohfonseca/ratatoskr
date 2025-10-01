@@ -59,6 +59,7 @@ CREATE TABLE endpoints (
     enabled BOOLEAN DEFAULT TRUE,
     status check_status NOT NULL DEFAULT 'unknown',
     expected_response_code INT,
+    response_code INT,
     response_message VARCHAR(300),
     response_time_ms INT,
     timeout_seconds INT DEFAULT 30,

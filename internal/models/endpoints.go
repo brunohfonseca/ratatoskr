@@ -24,9 +24,11 @@ type Endpoint struct {
 	// SSL Configuration
 	CheckSSL bool `json:"check_ssl"`
 	// Current Status
-	Status       EndpointStatus `json:"status"`
-	ResponseTime int            `json:"response_time,omitempty"`
-	ErrorMessage string         `json:"error_message,omitempty"`
+	Status               EndpointStatus `json:"status"`
+	ResponseTime         int            `json:"response_time,omitempty"`
+	ResponseMessage      string         `json:"response_message,omitempty"`
+	ExpectedResponseCode int            `json:"expected_response_code,omitempty"`
+	TimeoutSeconds       int            `json:"timeout_seconds,omitempty"`
 	// Alert Groups (referência aos grupos de alerta)
 	AlertGroupID *int `json:"alert_group_id,omitempty"`
 	// Control Fields
@@ -44,4 +46,12 @@ type EndpointHealthHistory struct {
 	ResponseTime time.Duration  `json:"response_time,omitempty"`
 	ErrorMessage string         `json:"error_message,omitempty"`
 	CheckedAt    time.Time      `json:"checked_at"`
+}
+
+type EndpointResponse struct {
+	ExpectedResponseCode int    `json:"expected_response_code,omitempty"`
+	ResponseStatusCode   int    `json:"response_code,omitempty"`
+	ResponseTime         int    `json:"response_time,omitempty"`
+	ResponseMessage      string `json:"response_message,omitempty"`
+	TimeoutSeconds       int    `json:"timeout_seconds,omitempty"`
 }

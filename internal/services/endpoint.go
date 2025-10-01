@@ -42,3 +42,31 @@ func CreateEndpoint(endpoint *models.Endpoint, userID int) error {
 
 	return err
 }
+
+func UpdateCheck(endpoint models.Endpoint) {
+	//db := postgres.PostgresConn
+
+	//sql := "UPDATE endpoints SET status = $1 WHERE uuid = $2"
+}
+
+func GetEndpointByUUID(uuid string) (interface{}, error) {
+	db := postgres.PostgresConn
+
+	sql := `
+		SELECT 
+			uuid,
+			expected_response_code,
+			timeout_seconds, 
+			alert_group_id
+		FROM endpoints
+		WHERE uuid = $1
+	`
+	row := db.QueryRow(sql, uuid)
+	var endpoint models.Endpoint
+	err := row.Scan(&endpoint.UUID, &endpoint.ExpectedResponseCode, &endpoint.TimeoutSeconds, &endpoint.AlertGroupID)
+	if err != nil {
+		return "", err
+	}
+
+	return endpoint, nil
+}
