@@ -8,7 +8,7 @@ tmp_dir = "tmp"
   cmd = "go build -buildvcs=false -o ./tmp/worker ./cmd/worker"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "ssl", ".docker", "migrations", "cmd/api", "internal/api", "internal/handlers"]
-  exclude_file = [".golangci.yml", ".goreleaser.yml", "config/*.example.yml", "config/config.example.yml", "compose.yml", "dev-compose.yml"]
+  exclude_file = [".golangci.yml", ".goreleaser.yml", "config/*.example.yml", "config/api-config.yml", "compose.yml", "dev-compose.yml"]
   exclude_regex = ["_test.go"]
   exclude_unchanged = false
   follow_symlink = false

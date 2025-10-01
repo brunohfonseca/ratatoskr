@@ -1,0 +1,14 @@
+.golangci.yml
+.goreleaser.yml
+.worker.air.toml
+.api.air.toml
+dev-compose.yml
+.idea
+compose.yml
+.gitignore
+.git
+tmp
+ssl
+docs
+Dockerfile
+.docker
