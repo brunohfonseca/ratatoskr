@@ -30,13 +30,40 @@ func ConnectRedis(RedisURL string) {
 }
 
 func DisconnectRedis() {
-	if RedisClient != nil {
-		if err := RedisClient.Close(); err != nil {
-			log.Fatal().Msgf("Erro ao desconectar do Redis: %v", err)
+	if RedisClient == nil {
+		return
+	}
+	if err := RedisClient.Close(); err != nil {
+		log.Error().Err(err).Msg("⚠️ Erro ao desconectar do Redis")
+	} else {
+		log.Info().Msg("✅ Disconnected from Redis")
+	}
+	RedisClient = nil
+}
+
+func DisconnectWorkerRedis(groupName, consumerName string) {
+	if RedisClient == nil {
+		return
+	}
+
+	streams := []string{"alerts", "endpoints", "ssl-checks"}
+	for _, stream := range streams {
+		if _, err := RedisClient.XGroupDelConsumer(context.Background(), stream, groupName, consumerName).Result(); err != nil {
+			log.Warn().Err(err).
+				Str("stream", stream).
+				Str("group", groupName).
+				Str("consumer", consumerName).
+				Msg("⚠️ Erro ao remover consumer")
 		} else {
-			log.Info().Msg("✅ Disconnected from Redis")
+			log.Info().
+				Str("stream", stream).
+				Str("group", groupName).
+				Str("consumer", consumerName).
+				Msg("🧹 Consumer removido com sucesso")
 		}
 	}
+
+	DisconnectRedis()
 }
 
 // CheckRedisHealth verifica o status da conexão com Redis

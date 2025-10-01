@@ -42,7 +42,7 @@ func main() {
 	<-ctx.Done()
 
 	log.Info().Msg("🛑 Finalizando worker...")
-	redis.DisconnectRedis()
+	redis.DisconnectWorkerRedis(cfg.Name, workerName)
 	postgres.DisconnectPostgres()
 	log.Info().Msg("✅ Worker finalizado com sucesso!")
 }

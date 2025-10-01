@@ -13,41 +13,39 @@ import (
 // StartHealthCheckWorker inicia o worker que consome endpoints do Redis Stream
 func StartHealthCheckWorker(redisClient *redis.Client, groupName, consumerName string) {
 	ctx := context.Background()
-	group := groupName
-	consumer := consumerName
 
 	log.Info().
-		Str("group", group).
-		Str("consumer", consumer).
+		Str("group", groupName).
+		Str("consumer", consumerName).
 		Msg("Initializing worker...")
 
 	// Cria consumer groups para cada stream
 	streams := []string{"alerts", "endpoints", "ssl-checks"}
 
 	for _, stream := range streams {
-		err := redisClient.XGroupCreateMkStream(ctx, stream, group, "0").Err()
+		err := redisClient.XGroupCreateMkStream(ctx, stream, groupName, "0").Err()
 		if err != nil {
 			// Ignora se grupo já existe
 			if err.Error() == "BUSYGROUP Consumer Group name already exists" {
-				log.Info().Str("stream", stream).Str("group", group).Msg("Consumer group already exists")
+				log.Info().Str("stream", stream).Str("group", groupName).Msg("Consumer group already exists")
 			} else {
-				log.Error().Err(err).Str("stream", stream).Str("group", group).Msg("Failed to create consumer group")
+				log.Error().Err(err).Str("stream", stream).Str("group", groupName).Msg("Failed to create consumer group")
 			}
 		} else {
-			log.Info().Str("stream", stream).Str("group", group).Msg("Consumer group created")
+			log.Info().Str("stream", stream).Str("group", groupName).Msg("Consumer group created")
 		}
 	}
 
 	// Pequeno delay para garantir que Redis processou
 	time.Sleep(100 * time.Millisecond)
 
-	log.Info().Str("consumer", consumer).Str("group", group).Msg("🚀 Consumer started")
+	log.Info().Str("consumer", consumerName).Str("group", groupName).Msg("🚀 Consumer started")
 
 	for {
 		// Lê mensagens do stream
 		results, err := redisClient.XReadGroup(ctx, &redis.XReadGroupArgs{
-			Group:    group,
-			Consumer: consumer,
+			Group:    groupName,
+			Consumer: consumerName,
 			Streams:  []string{"alerts", "endpoints", "ssl-checks", ">", ">", ">"},
 			Count:    10,
 			Block:    1 * time.Second,
@@ -56,19 +54,19 @@ func StartHealthCheckWorker(redisClient *redis.Client, groupName, consumerName s
 		if err != nil {
 			if err != redis.Nil {
 				// Se for erro de grupo não encontrado, loga e para
-				if err.Error() == "NOGROUP No such key '>' or consumer group '"+group+"' in XREADGROUP with GROUP option" {
+				if err.Error() == "NOGROUP No such key '>' or consumer group '"+groupName+"' in XREADGROUP with GROUP option" {
 					log.Fatal().
 						Err(err).
-						Str("group", group).
-						Str("consumer", consumer).
+						Str("group", groupName).
+						Str("consumer", consumerName).
 						Msg("❌ Consumer group not found - stopping worker")
 				}
 
 				// Outros erros também param
 				log.Fatal().
 					Err(err).
-					Str("group", group).
-					Str("consumer", consumer).
+					Str("group", groupName).
+					Str("consumer", consumerName).
 					Msg("❌ Fatal error reading from stream - stopping worker")
 			}
 			continue
@@ -83,7 +81,7 @@ func StartHealthCheckWorker(redisClient *redis.Client, groupName, consumerName s
 
 				// Processa baseado em qual stream veio
 				if streamName == "endpoints" {
-					processEndpoint(ctx, redisClient, streamName, group, msg)
+					processEndpoint(ctx, redisClient, streamName, groupName, msg)
 				} else if streamName == "ssl-checks" {
 					//processSSLCheck(ctx, redisClient, streamName, group, msg)
 				}
