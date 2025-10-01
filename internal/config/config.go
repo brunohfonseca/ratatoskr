@@ -23,7 +23,7 @@ func SetupLogs() {
 
 type AppConfig struct {
 	Name        string `yaml:"name"`
-	Environment string `yaml:"environment"`
+	Environment string `yaml:"environment"` // development, production
 	Server      struct {
 		Port           int      `yaml:"port"`
 		TrustedProxies []string `yaml:"trusted_proxies"`
