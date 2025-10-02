@@ -76,7 +76,7 @@ func UpdateCheck(uuid string, endpoint models.EndpointResponse) error {
 	return nil
 }
 
-func RegisterCheck(endpoint models.Endpoint) error {
+func RegisterCheck(uuid string, endpoint models.EndpointResponse) error {
 	return nil
 }
 
