@@ -1,5 +1,4 @@
 -- Drop child tables first to respect foreign key dependencies
-DROP TABLE IF EXISTS endpoint_auth;
 DROP TABLE IF EXISTS endpoint_checks;
 DROP TABLE IF EXISTS sent_alerts;
 DROP TABLE IF EXISTS alert_group_channels;

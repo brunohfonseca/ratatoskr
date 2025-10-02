@@ -80,16 +80,6 @@ CREATE TABLE endpoint_checks (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Autenticação de endpoints (JSONB flexível)
-CREATE TABLE endpoint_auth (
-    uuid UUID DEFAULT uuidv7() PRIMARY KEY,
-    endpoint_id UUID REFERENCES endpoints(uuid) ON DELETE CASCADE,
-    config JSONB NOT NULL,
-    last_modified_by UUID REFERENCES users(uuid) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
-
 -- Histórico das checagens (time-series)
 CREATE TABLE sent_alerts (
     uuid UUID DEFAULT uuidv7() PRIMARY KEY,
