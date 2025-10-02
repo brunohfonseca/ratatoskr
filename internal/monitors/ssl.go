@@ -35,20 +35,24 @@ func ProcessSSLCheck(msg redis.XMessage) {
 }
 
 func FetchSSL(domain string, timeout int) models.SSLInfo {
-
+	addr := domain
+	if !hasPort(domain) {
+		addr = domain + ":443"
+	}
 	dialer := &net.Dialer{
 		Timeout: time.Duration(timeout) * time.Second,
 	}
 
-	conn, err := tls.DialWithDialer(dialer, "tcp", domain,
+	conn, err := tls.DialWithDialer(dialer, "tcp", addr,
 		&tls.Config{
 			InsecureSkipVerify: true,
 		},
 	)
 	if err != nil {
 		return models.SSLInfo{
-			Valid: string(models.SSLStatusUnknown),
-			Error: fmt.Sprintf("falha ao conectar: %v", err),
+			Valid:     models.SSLStatusError,
+			Error:     fmt.Sprintf("falha ao conectar: %v", err),
+			LastCheck: time.Now(),
 		}
 	}
 	defer conn.Close()
@@ -56,20 +60,47 @@ func FetchSSL(domain string, timeout int) models.SSLInfo {
 	certs := conn.ConnectionState().PeerCertificates
 	if len(certs) == 0 {
 		return models.SSLInfo{
-			Valid: string(models.SSLStatusUnknown),
-			Error: "nenhum certificado encontrado",
+			Valid:     models.SSLStatusError,
+			Error:     "nenhum certificado encontrado",
+			LastCheck: time.Now(),
 		}
 	}
 
 	cert := certs[0] // pega o primeiro cert da cadeia
+	now := time.Now()
 
-	switch cert {
+	// Determina o status baseado na data de expiração
+	var status models.SSLStatus
+	var errorMsg string
 
+	if now.After(cert.NotAfter) {
+		// Certificado expirado
+		status = models.SSLStatusExpired
+		errorMsg = "certificado expirado"
+	} else if now.Add(30 * 24 * time.Hour).After(cert.NotAfter) {
+		// Certificado expira em menos de 30 dias
+		status = models.SSLStatusWarning
+		daysRemaining := int(cert.NotAfter.Sub(now).Hours() / 24)
+		errorMsg = fmt.Sprintf("certificado expira em %d dias", daysRemaining)
+	} else {
+		// Certificado válido
+		status = models.SSLStatusValid
 	}
 
 	return models.SSLInfo{
-		Valid:          string(models.SSLStatusValid),
+		Valid:          status,
 		ExpirationDate: cert.NotAfter,
 		Issuer:         cert.Issuer.CommonName,
+		Error:          errorMsg,
+		LastCheck:      now,
 	}
+}
+
+func hasPort(host string) bool {
+	for _, c := range host {
+		if c == ':' {
+			return true
+		}
+	}
+	return false
 }

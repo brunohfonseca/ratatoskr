@@ -66,7 +66,7 @@ type EndpointResponse struct {
 
 type SSLInfo struct {
 	UUID           string    `json:"uuid,omitempty"`
-	Valid          string    `json:"valid,omitempty"`
+	Valid          SSLStatus `json:"valid,omitempty"`
 	ExpirationDate time.Time `json:"expiration_date"`
 	Issuer         string    `json:"issuer"`
 	Error          string    `json:"error,omitempty"`

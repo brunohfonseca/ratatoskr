@@ -1,7 +1,7 @@
 -- Enum para status das checagens
 CREATE TYPE check_status AS ENUM ('online', 'offline', 'timeout', 'error', 'unknown');
 CREATE TYPE alert_channel_type AS ENUM ('slack', 'telegram', 'email');
-CREATE TYPE endpoint_ssl_status AS ENUM ('valid', 'warning', 'expired');
+CREATE TYPE endpoint_ssl_status AS ENUM ('valid', 'warning', 'expired', 'error', 'unknown');
 CREATE TYPE auth_provider AS ENUM ('local', 'keycloak');
 
 -- Usuários
