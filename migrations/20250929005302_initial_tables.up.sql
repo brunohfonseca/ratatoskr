@@ -59,20 +59,13 @@ CREATE TABLE endpoints (
     response_time_ms INT,
     timeout_seconds INT DEFAULT 30,
     interval_seconds INT DEFAULT 300,
+    ssl_expiration_date TIMESTAMPTZ,
+    ssl_issuer VARCHAR(40) NOT NULL,
+    ssl_status endpoint_ssl_status NOT NULL,
+    ssl_last_check TIMESTAMPTZ DEFAULT now(),
+    ssl_error VARCHAR(300),
     alert_group_id UUID REFERENCES alert_groups(uuid) ON DELETE SET NULL,
     last_modified_by UUID REFERENCES users(uuid) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Endpoints monitorados
-CREATE TABLE endpoint_ssl (
-    uuid UUID DEFAULT uuidv7() PRIMARY KEY,
-    endpoint_id UUID NOT NULL REFERENCES endpoints(uuid) ON DELETE CASCADE,
-    expiration_date TIMESTAMPTZ NOT NULL,
-    issuer VARCHAR(40) NOT NULL,
-    status endpoint_ssl_status NOT NULL,
-    last_check TIMESTAMPTZ DEFAULT now(),
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );

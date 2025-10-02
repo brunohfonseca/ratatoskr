@@ -145,11 +145,12 @@ func CheckEndpoint(c *gin.Context) {
 	err = infraRedis.StreamPublish(c, &redis.XAddArgs{
 		Stream: "endpoints",
 		Values: map[string]interface{}{
-			"uuid":    ep.UUID,
-			"name":    ep.Name,
-			"domain":  ep.Domain,
-			"path":    ep.EndpointPath,
-			"timeout": ep.Timeout,
+			"uuid":                   ep.UUID,
+			"domain":                 ep.Domain,
+			"path":                   ep.EndpointPath,
+			"timeout":                ep.Timeout,
+			"expected_response_code": ep.ExpectedResponseCode,
+			"check_ssl":              ep.CheckSSL,
 		},
 	})
 	if err != nil {

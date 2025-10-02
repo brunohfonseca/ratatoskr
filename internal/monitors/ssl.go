@@ -1,45 +1,71 @@
 package monitors
 
 import (
-	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
+	"strconv"
 	"time"
 
+	"github.com/brunohfonseca/ratatoskr/internal/models"
+	"github.com/brunohfonseca/ratatoskr/internal/services"
 	"github.com/brunohfonseca/ratatoskr/internal/utils/logger"
 	"github.com/redis/go-redis/v9"
 )
 
-func ProcessSSLCheck(ctx context.Context, redisClient *redis.Client, stream, group string, msg redis.XMessage) {
+func ProcessSSLCheck(msg redis.XMessage) {
 	logger.DebugLog("✅ SSL check started")
+	uuid := msg.Values["uuid"].(string)
+	domain := msg.Values["domain"].(string)
+	timeoutStr, _ := msg.Values["timeout"].(string)
+
+	timeout, err := strconv.Atoi(timeoutStr)
+	if err != nil {
+		logger.ErrLog("Erro ao converter timeout", err)
+		timeout = 30
+	}
+	sslInfo := FetchSSL(domain, timeout)
+	sslInfo.UUID = uuid
+	err = services.RegisterSslInfo(sslInfo)
+	if err != nil {
+		logger.ErrLog("Erro ao registrar SSL info", err)
+		return
+	}
+
 }
 
-func FetchSSL(domain string) (time.Time, error) {
-	host := domain
+func FetchSSL(domain string, timeout int) models.SSLInfo {
 
 	dialer := &net.Dialer{
-		Timeout: 10 * time.Second,
+		Timeout: time.Duration(timeout) * time.Second,
 	}
 
-	conn, err := tls.DialWithDialer(dialer, "tcp", host, &tls.Config{
-		InsecureSkipVerify: true,
-	})
+	conn, err := tls.DialWithDialer(dialer, "tcp", domain,
+		&tls.Config{
+			InsecureSkipVerify: true,
+		},
+	)
 	if err != nil {
-		return time.Time{}, err
-	}
-	defer func() {
-		if err := conn.Close(); err != nil {
-			// Log the error but don't override the main function's return error
-			// since connection close errors are typically not critical
-			fmt.Printf("Warning: failed to close SSL connection: %v\n", err)
+		return models.SSLInfo{
+			Valid: false,
+			Error: fmt.Sprintf("falha ao conectar: %v", err),
 		}
-	}()
+	}
+	defer conn.Close()
 
 	certs := conn.ConnectionState().PeerCertificates
 	if len(certs) == 0 {
-		return time.Time{}, fmt.Errorf("nenhum certificado encontrado")
+		return models.SSLInfo{
+			Valid: false,
+			Error: "nenhum certificado encontrado",
+		}
 	}
 
-	return certs[0].NotAfter, nil
+	cert := certs[0] // pega o primeiro cert da cadeia
+	now := time.Now()
+	return models.SSLInfo{
+		Valid:          now.Before(cert.NotAfter),
+		ExpirationDate: cert.NotAfter,
+		Issuer:         cert.Issuer.CommonName,
+	}
 }

@@ -1,7 +1,6 @@
 package monitors
 
 import (
-	"context"
 	"crypto/tls"
 	"fmt"
 	"net/http"
@@ -14,7 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func ProcessEndpoint(ctx context.Context, redisClient *redis.Client, stream, group string, msg redis.XMessage) {
+func ProcessEndpoint(msg redis.XMessage) {
 	// Leitura segura dos campos do Redis
 	uuid, _ := msg.Values["uuid"].(string)
 	domain, _ := msg.Values["domain"].(string)
@@ -38,19 +37,16 @@ func ProcessEndpoint(ctx context.Context, redisClient *redis.Client, stream, gro
 
 	url := fmt.Sprintf("%s%s", domain, path)
 	check := doHealthCheck(url, expectedResponseCode, timeout)
+	check.UUID = uuid
 
 	log := fmt.Sprintf("Checked Endpoint: UUID=%s, ExpectedResponseCode=%d, ResponseTime=%d, ResponseCode=%d, ResponseMessage=%s", uuid, expectedResponseCode, check.ResponseTime, check.ResponseStatusCode, check.ResponseMessage)
 	logger.DebugLog(log)
 
-	err = services.UpdateCheck(uuid, check)
+	err = services.UpdateCheck(check)
 	if err != nil {
 		logger.ErrLog("Erro ao atualizar endpoint", err)
 		return
 	}
-
-	// Adiciona o UUID ao resultado do check antes de registrar no histórico
-	check.UUID = uuid
-
 	err = services.RegisterCheck(check)
 	if err != nil {
 		logger.ErrLog("Erro ao registrar check no histórico", err)
@@ -58,10 +54,8 @@ func ProcessEndpoint(ctx context.Context, redisClient *redis.Client, stream, gro
 	}
 
 	if checkSSLStr == "true" {
-		_, err := FetchSSL(domain)
-		if err != nil {
-			return
-		}
+		logger.DebugLog("Init SSL check")
+		FetchSSL(domain, timeout)
 	}
 
 	logMsg := fmt.Sprintf("✅ Health check completed in %s", uuid)

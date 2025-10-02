@@ -53,3 +53,12 @@ type EndpointResponse struct {
 	ResponseMessage      string         `json:"response_message,omitempty"`
 	TimeoutSeconds       int            `json:"timeout_seconds,omitempty"`
 }
+
+type SSLInfo struct {
+	UUID           string    `json:"uuid,omitempty"`
+	Valid          bool      `json:"valid,omitempty"`
+	ExpirationDate time.Time `json:"expiration_date"`
+	Issuer         string    `json:"issuer"`
+	Error          string    `json:"error,omitempty"`
+	LastCheck      time.Time `json:"last_check"`
+}

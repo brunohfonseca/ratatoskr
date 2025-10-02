@@ -35,7 +35,6 @@ func CreateEndpoint(endpoint *models.Endpoint, userID string) error {
 		Stream: "endpoints",
 		Values: map[string]interface{}{
 			"uuid":                   endpoint.UUID,
-			"name":                   endpoint.Name,
 			"domain":                 endpoint.Domain,
 			"path":                   endpoint.EndpointPath,
 			"timeout":                endpoint.Timeout,
@@ -51,54 +50,6 @@ func CreateEndpoint(endpoint *models.Endpoint, userID string) error {
 	return err
 }
 
-func UpdateCheck(uuid string, endpoint models.EndpointResponse) error {
-	db := postgres.PostgresConn
-
-	sql := `
-		UPDATE 
-		    endpoints 
-		SET 
-		    status = $2,
-		    response_time_ms = $3,
-		    response_code = $4,
-		    response_message = $5
-		WHERE uuid = $1
-		`
-	_, err := db.Exec(sql,
-		uuid,
-		endpoint.Status,
-		endpoint.ResponseTime,
-		endpoint.ResponseStatusCode,
-		endpoint.ResponseMessage,
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func RegisterCheck(endpoint models.EndpointResponse) error {
-	db := postgres.PostgresConn
-
-	query := `
-		INSERT INTO
-			endpoint_checks(endpoint_id, status, response_time_ms, response_message)
-		VALUES
-			($1, $2, $3, $4)
-		`
-	_, err := db.Exec(query,
-		endpoint.UUID,
-		endpoint.Status,
-		endpoint.ResponseTime,
-		endpoint.ResponseMessage,
-	)
-	if err != nil {
-		logger.ErrLog("Erro ao registrar check", err)
-		return err
-	}
-	return nil
-}
-
 func GetEndpointByUUID(uuid string) (models.Endpoint, error) {
 	var endpoint models.Endpoint
 	db := postgres.PostgresConn
@@ -106,21 +57,21 @@ func GetEndpointByUUID(uuid string) (models.Endpoint, error) {
 	sql := `
 		SELECT 
 			uuid,
-			name,
+			domain,
+			path,
 			expected_response_code,
 			check_ssl,
-			timeout_seconds, 
-			alert_group_id
+			timeout_seconds
 		FROM endpoints
 		WHERE uuid = $1
 	`
 	err := db.QueryRow(sql, uuid).Scan(
 		&endpoint.UUID,
-		&endpoint.Name,
+		&endpoint.Domain,
+		&endpoint.EndpointPath,
 		&endpoint.ExpectedResponseCode,
 		&endpoint.CheckSSL,
 		&endpoint.TimeoutSeconds,
-		&endpoint.AlertGroupID,
 	)
 	if err != nil {
 		return models.Endpoint{}, err
@@ -166,4 +117,80 @@ func ListEndpoints() ([]models.Endpoint, error) {
 		endpoints = append(endpoints, endpoint)
 	}
 	return endpoints, nil
+}
+
+func UpdateCheck(endpoint models.EndpointResponse) error {
+	db := postgres.PostgresConn
+
+	sql := `
+		UPDATE 
+		    endpoints 
+		SET 
+		    status = $2,
+		    response_time_ms = $3,
+		    response_code = $4,
+		    response_message = $5
+		WHERE uuid = $1
+		`
+	_, err := db.Exec(sql,
+		endpoint.UUID,
+		endpoint.Status,
+		endpoint.ResponseTime,
+		endpoint.ResponseStatusCode,
+		endpoint.ResponseMessage,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func RegisterCheck(endpoint models.EndpointResponse) error {
+	db := postgres.PostgresConn
+
+	query := `
+		INSERT INTO
+			endpoint_checks(endpoint_id, status, response_time_ms, response_message)
+		VALUES
+			($1, $2, $3, $4)
+		`
+	_, err := db.Exec(query,
+		endpoint.UUID,
+		endpoint.Status,
+		endpoint.ResponseTime,
+		endpoint.ResponseMessage,
+	)
+	if err != nil {
+		logger.ErrLog("Erro ao registrar check", err)
+		return err
+	}
+	return nil
+}
+
+func RegisterSslInfo(ssl models.SSLInfo) error {
+	db := postgres.PostgresConn
+
+	sql := `
+		UPDATE 
+		    endpoints 
+		SET 
+		    ssl_status = $2,
+		    ssl_issuer = $3,
+		    ssl_expiration_date = $4,
+		    ssl_error = $5,
+		    ssl_last_check = $6
+		WHERE uuid = $1
+		`
+	_, err := db.Exec(sql,
+		ssl.UUID,
+		ssl.Valid,
+		ssl.Issuer,
+		ssl.ExpirationDate,
+		ssl.Error,
+		ssl.LastCheck,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }

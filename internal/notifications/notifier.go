@@ -1,8 +1,6 @@
 package notifications
 
 import (
-	"context"
-
 	"github.com/brunohfonseca/ratatoskr/internal/config"
 	"github.com/redis/go-redis/v9"
 	"github.com/slack-go/slack"
@@ -40,6 +38,6 @@ func configureSlackAttachment(message, logType string) slack.Attachment {
 	return attachment
 }
 
-func ProcessNotification(ctx context.Context, redisClient *redis.Client, stream, group string, msg redis.XMessage) {
+func ProcessNotification(msg redis.XMessage) {
 
 }
