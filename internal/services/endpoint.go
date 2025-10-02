@@ -84,3 +84,41 @@ func GetEndpointByUUID(uuid string) (models.Endpoint, error) {
 
 	return endpoint, nil
 }
+
+func ListEndpoints() ([]models.Endpoint, error) {
+	var endpoints []models.Endpoint
+	db := postgres.PostgresConn
+
+	query := `
+		SELECT
+		    uuid,
+		    name,
+		    domain,
+		    status,
+		    check_ssl
+		FROM endpoints`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterar sobre as rows e popular o slice
+	for rows.Next() {
+		var endpoint models.Endpoint
+
+		err := rows.Scan(
+			&endpoint.UUID,
+			&endpoint.Name,
+			&endpoint.Domain,
+			&endpoint.Status,
+			&endpoint.CheckSSL,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		endpoints = append(endpoints, endpoint)
+	}
+	return endpoints, nil
+}

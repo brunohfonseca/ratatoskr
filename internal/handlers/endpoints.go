@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	infraRedis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/brunohfonseca/ratatoskr/internal/models"
 	"github.com/brunohfonseca/ratatoskr/internal/services"
@@ -19,7 +18,10 @@ import (
 func CreateEndpoint(c *gin.Context) {
 	var endpoint models.Endpoint
 	if err := c.BindJSON(&endpoint); err != nil {
-		responses.Error(c, http.StatusBadRequest, err)
+		logger.DebugLog("Possible missing required fields, check your payload")
+		logger.DebugLog(err.Error())
+		msg := errors.New("Possible missing required fields, check your payload")
+		responses.Error(c, http.StatusBadRequest, msg)
 		return
 	}
 
@@ -47,52 +49,16 @@ func CreateEndpoint(c *gin.Context) {
 
 // ListEndpoints lista todos os endpoints cadastrados
 func ListEndpoints(c *gin.Context) {
-	var endpoints []models.Endpoint
 
-	db := postgres.PostgresConn
-	query := `
-		SELECT
-		    uuid,
-		    name,
-		    domain,
-		    status,
-		    check_ssl
-		FROM endpoints`
-	rows, err := db.Query(query)
+	response, err := services.ListEndpoints()
 	if err != nil {
-		responses.Error(c, http.StatusInternalServerError, err)
-		return
-	}
-	defer rows.Close()
-
-	// Iterar sobre as rows e popular o slice
-	for rows.Next() {
-		var endpoint models.Endpoint
-
-		err := rows.Scan(
-			&endpoint.UUID,
-			&endpoint.Name,
-			&endpoint.Domain,
-			&endpoint.Status,
-			&endpoint.CheckSSL,
-		)
-		if err != nil {
-			responses.Error(c, http.StatusInternalServerError, err)
-			return
-		}
-
-		endpoints = append(endpoints, endpoint)
-	}
-
-	// Verificar se houve erro durante a iteração
-	if err = rows.Err(); err != nil {
 		responses.Error(c, http.StatusInternalServerError, err)
 		return
 	}
 
 	responses.Success(c, http.StatusOK, gin.H{
-		"total":     len(endpoints),
-		"endpoints": endpoints,
+		"total":     len(response),
+		"endpoints": response,
 	})
 }
 

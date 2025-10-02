@@ -8,7 +8,6 @@ import (
 	"github.com/brunohfonseca/ratatoskr/internal/utils"
 	"github.com/brunohfonseca/ratatoskr/internal/utils/responses"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 func CreateUser(c *gin.Context) {
@@ -17,33 +16,26 @@ func CreateUser(c *gin.Context) {
 		responses.Error(c, http.StatusBadRequest, err)
 		return
 	}
-	v7, err := uuid.NewV7()
-	if err != nil {
-		responses.Error(c, http.StatusInternalServerError, err)
-		return
-	}
+
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	db := postgres.PostgresConn
-	sql := "INSERT INTO users (uuid, full_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id"
+	sql := "INSERT INTO users (full_name, email, password_hash) VALUES ($1, $2, $3) RETURNING uuid"
 	err = db.QueryRow(sql,
-		v7,
 		user.FullName,
 		user.Email,
 		hashedPassword,
-	).Scan(&user.ID)
+	).Scan(&user.UUID)
 	if err != nil {
 		responses.Error(c, http.StatusInternalServerError, err)
 		return
 	}
 	responses.Success(c, http.StatusCreated, gin.H{
-		"message": "ok",
-		"id":      user.ID,
-		"uuid":    v7,
-		"email":   user.Email,
+		"uuid":  user.UUID,
+		"email": user.Email,
 	})
 }
 
