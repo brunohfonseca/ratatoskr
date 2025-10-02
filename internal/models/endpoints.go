@@ -34,8 +34,8 @@ type Endpoint struct {
 	// Control Fields
 	Enabled   bool      `json:"enabled"`
 	LastCheck time.Time `json:"last_check,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
 // EndpointHealthHistory - Para manter histórico de checks

@@ -64,6 +64,7 @@ func GetEndpointByUUID(uuid string) (models.Endpoint, error) {
 			uuid,
 			name,
 			expected_response_code,
+			check_ssl,
 			timeout_seconds, 
 			alert_group_id
 		FROM endpoints
@@ -73,6 +74,7 @@ func GetEndpointByUUID(uuid string) (models.Endpoint, error) {
 		&endpoint.UUID,
 		&endpoint.Name,
 		&endpoint.ExpectedResponseCode,
+		&endpoint.CheckSSL,
 		&endpoint.TimeoutSeconds,
 		&endpoint.AlertGroupID,
 	)

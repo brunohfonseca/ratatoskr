@@ -7,11 +7,12 @@ import (
 	"net"
 	"time"
 
+	"github.com/brunohfonseca/ratatoskr/internal/utils/logger"
 	"github.com/redis/go-redis/v9"
 )
 
 func ProcessSSLCheck(ctx context.Context, redisClient *redis.Client, stream, group string, msg redis.XMessage) {
-
+	logger.DebugLog("✅ SSL check started")
 }
 
 func FetchSSL(domain string) (time.Time, error) {

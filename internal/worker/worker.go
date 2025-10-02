@@ -61,10 +61,13 @@ func StartWorker(ctx context.Context, redisClient *redis.Client, groupName, cons
 					switch res.Stream {
 					case "endpoints":
 						monitors.ProcessEndpoint(ctx, redisClient, res.Stream, groupName, msg)
+						logger.DebugLog("✅ Endpoint processed")
 					case "ssl-checks":
 						monitors.ProcessSSLCheck(ctx, redisClient, res.Stream, groupName, msg)
+						logger.DebugLog("✅ SSL check processed")
 					case "notifications":
 						notifications.ProcessNotification(ctx, redisClient, res.Stream, groupName, msg)
+						logger.DebugLog("✅ Notification processed")
 					}
 
 					if _, err := redisClient.XAck(ctx, res.Stream, groupName, msg.ID).Result(); err != nil {

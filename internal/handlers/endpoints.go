@@ -50,18 +50,15 @@ func ListEndpoints(c *gin.Context) {
 	var endpoints []models.Endpoint
 
 	db := postgres.PostgresConn
-	sql := `
+	query := `
 		SELECT
-		    id,
 		    uuid,
 		    name,
 		    domain,
 		    status,
-		    path,
-		    check_ssl,
-		    last_modified_by 
+		    check_ssl
 		FROM endpoints`
-	rows, err := db.Query(sql)
+	rows, err := db.Query(query)
 	if err != nil {
 		responses.Error(c, http.StatusInternalServerError, err)
 		return
@@ -71,17 +68,13 @@ func ListEndpoints(c *gin.Context) {
 	// Iterar sobre as rows e popular o slice
 	for rows.Next() {
 		var endpoint models.Endpoint
-		var lastModifiedBy *int
 
 		err := rows.Scan(
-			&endpoint.ID,
 			&endpoint.UUID,
 			&endpoint.Name,
 			&endpoint.Domain,
 			&endpoint.Status,
-			&endpoint.EndpointPath,
 			&endpoint.CheckSSL,
-			&lastModifiedBy,
 		)
 		if err != nil {
 			responses.Error(c, http.StatusInternalServerError, err)
@@ -159,6 +152,7 @@ func GetEndpointUptime(c *gin.Context) {
 	})
 }
 
+// CheckEndpoint adiciona um endpoint a fila de verificação
 func CheckEndpoint(c *gin.Context) {
 	var endpoint models.Endpoint
 	if err := c.BindJSON(&endpoint); err != nil {
@@ -186,21 +180,36 @@ func CheckEndpoint(c *gin.Context) {
 	err = infraRedis.StreamPublish(c, &redis.XAddArgs{
 		Stream: "endpoints",
 		Values: map[string]interface{}{
-			"uuid":      endpoint.UUID,
-			"name":      endpoint.Name,
-			"domain":    endpoint.Domain,
-			"path":      endpoint.EndpointPath,
-			"timeout":   endpoint.Timeout,
-			"check_ssl": endpoint.CheckSSL,
+			"uuid":    ep.UUID,
+			"name":    ep.Name,
+			"domain":  ep.Domain,
+			"path":    ep.EndpointPath,
+			"timeout": ep.Timeout,
 		},
 	})
 	if err != nil {
 		responses.Error(c, http.StatusInternalServerError, err)
 		return
 	}
+	if ep.CheckSSL {
+		err := infraRedis.StreamPublish(c, &redis.XAddArgs{
+			Stream: "ssl-checks",
+			Values: map[string]interface{}{
+				"uuid":    ep.UUID,
+				"domain":  ep.Domain,
+				"timeout": ep.Timeout,
+			},
+		})
+		logger.DebugLog("SSL check adicionado a fila de verificação")
+		if err != nil {
+			responses.Error(c, http.StatusInternalServerError, err)
+			return
+		}
+	}
 
 	responses.Success(c, http.StatusOK, gin.H{
 		"uuid":    ep.UUID,
+		"name":    ep.Name,
 		"message": "Endpoint adicionado a fila de verificação",
 	})
 }
