@@ -9,6 +9,7 @@ type EndpointStatus string
 const (
 	StatusOnline  EndpointStatus = "online"
 	StatusOffline EndpointStatus = "offline"
+	StatusError   EndpointStatus = "error"
 	StatusUnknown EndpointStatus = "unknown"
 )
 
@@ -44,9 +45,11 @@ type EndpointHealthHistory struct {
 }
 
 type EndpointResponse struct {
-	ExpectedResponseCode int    `json:"expected_response_code,omitempty"`
-	ResponseStatusCode   int    `json:"response_code,omitempty"`
-	ResponseTime         int    `json:"response_time,omitempty"`
-	ResponseMessage      string `json:"response_message,omitempty"`
-	TimeoutSeconds       int    `json:"timeout_seconds,omitempty"`
+	UUID                 string         `json:"uuid,omitempty"`
+	Status               EndpointStatus `json:"status"`
+	ExpectedResponseCode int            `json:"expected_response_code,omitempty"`
+	ResponseStatusCode   int            `json:"response_code,omitempty"`
+	ResponseTime         int            `json:"response_time,omitempty"`
+	ResponseMessage      string         `json:"response_message,omitempty"`
+	TimeoutSeconds       int            `json:"timeout_seconds,omitempty"`
 }

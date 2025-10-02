@@ -33,12 +33,13 @@ func CreateEndpoint(endpoint *models.Endpoint, userID int) error {
 	err = infraRedis.StreamPublish(ctx, &redis.XAddArgs{
 		Stream: "endpoints",
 		Values: map[string]interface{}{
-			"uuid":      endpoint.UUID,
-			"name":      endpoint.Name,
-			"domain":    endpoint.Domain,
-			"path":      endpoint.EndpointPath,
-			"timeout":   endpoint.Timeout,
-			"check_ssl": endpoint.CheckSSL,
+			"uuid":                   endpoint.UUID,
+			"name":                   endpoint.Name,
+			"domain":                 endpoint.Domain,
+			"path":                   endpoint.EndpointPath,
+			"timeout":                endpoint.Timeout,
+			"expected_response_code": endpoint.ExpectedResponseCode,
+			"check_ssl":              endpoint.CheckSSL,
 		},
 	})
 	if err != nil {
@@ -49,10 +50,34 @@ func CreateEndpoint(endpoint *models.Endpoint, userID int) error {
 	return err
 }
 
-func UpdateCheck(endpoint models.Endpoint) {
-	//db := postgres.PostgresConn
+func UpdateCheck(uuid string, endpoint models.EndpointResponse) error {
+	db := postgres.PostgresConn
 
-	//sql := "UPDATE endpoints SET status = $1 WHERE uuid = $2"
+	sql := `
+		UPDATE 
+		    endpoints 
+		SET 
+		    status = $2,
+		    response_time_ms = $3,
+		    response_code = $4,
+		    response_message = $5
+		WHERE uuid = $1
+		`
+	_, err := db.Exec(sql,
+		uuid,
+		endpoint.Status,
+		endpoint.ResponseTime,
+		endpoint.ResponseStatusCode,
+		endpoint.ResponseMessage,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func RegisterCheck(endpoint models.Endpoint) error {
+	return nil
 }
 
 func GetEndpointByUUID(uuid string) (models.Endpoint, error) {
