@@ -57,6 +57,7 @@ func GetEndpointByUUID(uuid string) (models.Endpoint, error) {
 	sql := `
 		SELECT 
 			uuid,
+			name,
 			domain,
 			path,
 			expected_response_code,
@@ -67,6 +68,7 @@ func GetEndpointByUUID(uuid string) (models.Endpoint, error) {
 	`
 	err := db.QueryRow(sql, uuid).Scan(
 		&endpoint.UUID,
+		&endpoint.Name,
 		&endpoint.Domain,
 		&endpoint.EndpointPath,
 		&endpoint.ExpectedResponseCode,

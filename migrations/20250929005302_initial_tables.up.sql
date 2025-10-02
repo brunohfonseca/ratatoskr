@@ -60,7 +60,7 @@ CREATE TABLE endpoints (
     timeout_seconds INT DEFAULT 30,
     interval_seconds INT DEFAULT 300,
     ssl_expiration_date TIMESTAMPTZ,
-    ssl_issuer VARCHAR(40) NOT NULL,
+    ssl_issuer VARCHAR(80) NOT NULL,
     ssl_status endpoint_ssl_status NOT NULL,
     ssl_last_check TIMESTAMPTZ DEFAULT now(),
     ssl_error VARCHAR(300),

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/brunohfonseca/ratatoskr/internal/models"
@@ -35,6 +36,13 @@ func ProcessSSLCheck(msg redis.XMessage) {
 }
 
 func FetchSSL(domain string, timeout int) models.SSLInfo {
+	// Remove protocolo se presente (http:// ou https://)
+	domain = strings.TrimPrefix(domain, "https://")
+	domain = strings.TrimPrefix(domain, "http://")
+
+	// Remove trailing slash se houver
+	domain = strings.TrimSuffix(domain, "/")
+
 	addr := domain
 	if !hasPort(domain) {
 		addr = domain + ":443"
