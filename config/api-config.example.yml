@@ -20,9 +20,9 @@ jwt:
   #Run `openssl rand -base64 32` to generate a random secret
   jwt_secret: "change-this-secret-in-production-use-a-strong-random-string"
   jwt_expiration_hours: 24  # Token válido por 24 horas
-keycloak:
+oidc:
   enabled: false
-  url: "http://localhost:8080/realms/ratatoskr"  # URL do Keycloak
+  url: "http://localhost:8080/realms/ratatoskr"
   client_id: "ratatoskr-api"
   client_secret: "your-client-secret"
   redirect_url: "http://localhost:8443/auth/keycloak/callback"

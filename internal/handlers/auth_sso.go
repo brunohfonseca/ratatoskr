@@ -26,28 +26,28 @@ var (
 func InitKeycloak() error {
 	cfg := config.Get()
 
-	if !cfg.Keycloak.Enabled {
+	if !cfg.OIDC.Enabled {
 		return nil // SSO desabilitado
 	}
 
 	ctx := context.Background()
 
-	provider, err := oidc.NewProvider(ctx, cfg.Keycloak.URL)
+	provider, err := oidc.NewProvider(ctx, cfg.OIDC.URL)
 	if err != nil {
 		return err
 	}
 
 	// Configura OAuth2
 	oauthConfig = &oauth2.Config{
-		ClientID:     cfg.Keycloak.ClientID,
-		ClientSecret: cfg.Keycloak.ClientSecret,
-		RedirectURL:  cfg.Keycloak.RedirectURL,
+		ClientID:     cfg.OIDC.ClientID,
+		ClientSecret: cfg.OIDC.ClientSecret,
+		RedirectURL:  cfg.OIDC.RedirectURL,
 		Endpoint:     provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 
 	// Verifier para validar tokens
-	oidcVerifier = provider.Verifier(&oidc.Config{ClientID: cfg.Keycloak.ClientID})
+	oidcVerifier = provider.Verifier(&oidc.Config{ClientID: cfg.OIDC.ClientID})
 
 	return nil
 }
@@ -56,7 +56,7 @@ func InitKeycloak() error {
 func KeycloakLogin(c *gin.Context) {
 	cfg := config.Get()
 
-	if !cfg.Keycloak.Enabled {
+	if !cfg.OIDC.Enabled {
 		responses.ErrorMsg(c, http.StatusNotImplemented, "SSO not enabled")
 		return
 	}
@@ -81,7 +81,7 @@ func KeycloakLogin(c *gin.Context) {
 func KeycloakCallback(c *gin.Context) {
 	cfg := config.Get()
 
-	if !cfg.Keycloak.Enabled {
+	if !cfg.OIDC.Enabled {
 		responses.ErrorMsg(c, http.StatusNotImplemented, "SSO not enabled")
 		return
 	}
@@ -162,7 +162,6 @@ func KeycloakCallback(c *gin.Context) {
 func getOrCreateUser(email, name string) (string, error) {
 	db := postgres.PostgresConn
 
-	// Tenta buscar usuário existente por email
 	var userUUID string
 	var enabled bool
 
@@ -187,7 +186,7 @@ func getOrCreateUser(email, name string) (string, error) {
 	// Usuário não existe, cria novo
 	err = db.QueryRow(`
 		INSERT INTO users (email, full_name, enabled, password_hash, auth_provider)
-		VALUES ($1, $2, true, '', 'keycloak')
+		VALUES ($1, $2, true, '', 'oidc')
 		RETURNING uuid`,
 		email,
 		name,
