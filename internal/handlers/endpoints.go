@@ -18,9 +18,8 @@ import (
 func CreateEndpoint(c *gin.Context) {
 	var endpoint models.Endpoint
 	if err := c.BindJSON(&endpoint); err != nil {
-		logger.DebugLog("Possible missing required fields, check your payload")
 		logger.DebugLog(err.Error())
-		msg := errors.New("Possible missing required fields, check your payload")
+		msg := errors.New("possible missing required fields, check your payload")
 		responses.Error(c, http.StatusBadRequest, msg)
 		return
 	}
@@ -120,14 +119,14 @@ func GetEndpointUptime(c *gin.Context) {
 
 // CheckEndpoint adiciona um endpoint a fila de verificação
 func CheckEndpoint(c *gin.Context) {
-	var endpoint models.Endpoint
-	if err := c.BindJSON(&endpoint); err != nil {
-		responses.Error(c, http.StatusBadRequest, err)
-		return
+	var endpoint struct {
+		UUID string `json:"uuid,omitempty" binding:"required"`
 	}
 
-	if endpoint.UUID == "" {
-		responses.ErrorMsg(c, http.StatusBadRequest, "UUID do endpoint não informado")
+	if err := c.BindJSON(&endpoint); err != nil {
+		logger.DebugLog(err.Error())
+		msg := errors.New("missing uuid")
+		responses.Error(c, http.StatusBadRequest, msg)
 		return
 	}
 
