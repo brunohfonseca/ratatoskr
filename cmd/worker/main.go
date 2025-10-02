@@ -19,6 +19,10 @@ func main() {
 	flag.Parse()
 
 	cfg := bootstrap.InitializeWorker(*configFile)
+	if cfg == nil {
+		logger.FatalLog("❌ Configuração não carregada", nil)
+		return
+	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
