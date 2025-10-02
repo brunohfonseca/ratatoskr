@@ -48,9 +48,12 @@ func ProcessEndpoint(ctx context.Context, redisClient *redis.Client, stream, gro
 		return
 	}
 
-	err = services.RegisterCheck(uuid, check)
+	// Adiciona o UUID ao resultado do check antes de registrar no histórico
+	check.UUID = uuid
+
+	err = services.RegisterCheck(check)
 	if err != nil {
-		logger.ErrLog("Erro ao atualizar endpoint", err)
+		logger.ErrLog("Erro ao registrar check no histórico", err)
 		return
 	}
 

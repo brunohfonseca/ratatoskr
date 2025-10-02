@@ -6,6 +6,7 @@ import (
 	postgres "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/postgres"
 	infraRedis "github.com/brunohfonseca/ratatoskr/internal/infrastructure/db/redis"
 	"github.com/brunohfonseca/ratatoskr/internal/models"
+	"github.com/brunohfonseca/ratatoskr/internal/utils/logger"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
 )
@@ -76,7 +77,25 @@ func UpdateCheck(uuid string, endpoint models.EndpointResponse) error {
 	return nil
 }
 
-func RegisterCheck(uuid string, endpoint models.EndpointResponse) error {
+func RegisterCheck(endpoint models.EndpointResponse) error {
+	db := postgres.PostgresConn
+
+	query := `
+		INSERT INTO
+			endpoint_checks(endpoint_id, status, response_time_ms, response_message)
+		VALUES
+			($1, $2, $3, $4)
+		`
+	_, err := db.Exec(query,
+		endpoint.UUID,
+		endpoint.Status,
+		endpoint.ResponseTime,
+		endpoint.ResponseMessage,
+	)
+	if err != nil {
+		logger.ErrLog("Erro ao registrar check", err)
+		return err
+	}
 	return nil
 }
 
@@ -121,7 +140,8 @@ func ListEndpoints() ([]models.Endpoint, error) {
 		    domain,
 		    status,
 		    check_ssl
-		FROM endpoints`
+		FROM endpoints
+		`
 	rows, err := db.Query(query)
 	if err != nil {
 		return nil, err
