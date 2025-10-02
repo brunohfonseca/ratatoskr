@@ -47,7 +47,7 @@ func FetchSSL(domain string, timeout int) models.SSLInfo {
 	)
 	if err != nil {
 		return models.SSLInfo{
-			Valid: false,
+			Valid: string(models.SSLStatusUnknown),
 			Error: fmt.Sprintf("falha ao conectar: %v", err),
 		}
 	}
@@ -56,15 +56,19 @@ func FetchSSL(domain string, timeout int) models.SSLInfo {
 	certs := conn.ConnectionState().PeerCertificates
 	if len(certs) == 0 {
 		return models.SSLInfo{
-			Valid: false,
+			Valid: string(models.SSLStatusUnknown),
 			Error: "nenhum certificado encontrado",
 		}
 	}
 
 	cert := certs[0] // pega o primeiro cert da cadeia
-	now := time.Now()
+
+	switch cert {
+
+	}
+
 	return models.SSLInfo{
-		Valid:          now.Before(cert.NotAfter),
+		Valid:          string(models.SSLStatusValid),
 		ExpirationDate: cert.NotAfter,
 		Issuer:         cert.Issuer.CommonName,
 	}

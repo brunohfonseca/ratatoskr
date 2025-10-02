@@ -13,6 +13,16 @@ const (
 	StatusUnknown EndpointStatus = "unknown"
 )
 
+type SSLStatus string
+
+const (
+	SSLStatusValid   SSLStatus = "valid"
+	SSLStatusWarning SSLStatus = "warning"
+	SSLStatusExpired SSLStatus = "expired"
+	SSLStatusUnknown SSLStatus = "unknown"
+	SSLStatusError   SSLStatus = "error"
+)
+
 type Endpoint struct {
 	ID                   int            `json:"id,omitempty"`
 	UUID                 string         `json:"uuid,omitempty"`
@@ -56,7 +66,7 @@ type EndpointResponse struct {
 
 type SSLInfo struct {
 	UUID           string    `json:"uuid,omitempty"`
-	Valid          bool      `json:"valid,omitempty"`
+	Valid          string    `json:"valid,omitempty"`
 	ExpirationDate time.Time `json:"expiration_date"`
 	Issuer         string    `json:"issuer"`
 	Error          string    `json:"error,omitempty"`
