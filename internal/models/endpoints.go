@@ -13,29 +13,24 @@ const (
 )
 
 type Endpoint struct {
-	ID     int    `json:"id,omitempty"`
-	UUID   string `json:"uuid,omitempty"`
-	Name   string `json:"name"`
-	Domain string `json:"domain"`
-	// Basic Health Check
-	EndpointPath string `json:"endpoint,omitempty"` // e.g., "/health"
-	Timeout      int    `json:"timeout,omitempty"`  // Default: 30s
-	Interval     int    `json:"interval,omitempty"` // Default: 5min
-	// SSL Configuration
-	CheckSSL bool `json:"check_ssl"`
-	// Current Status
+	ID                   int            `json:"id,omitempty"`
+	UUID                 string         `json:"uuid,omitempty"`
+	Name                 string         `json:"name"`
+	Domain               string         `json:"domain"`
+	EndpointPath         string         `json:"endpoint,omitempty"` // e.g., "/health"
+	Timeout              int            `json:"timeout,omitempty"`  // Default: 30s
+	CheckSSL             bool           `json:"check_ssl,omitempty"`
 	Status               EndpointStatus `json:"status"`
 	ResponseTime         int            `json:"response_time,omitempty"`
 	ResponseMessage      string         `json:"response_message,omitempty"`
 	ExpectedResponseCode int            `json:"expected_response_code,omitempty"`
+	ResponseStatusCode   int            `json:"response_code,omitempty"`
 	TimeoutSeconds       int            `json:"timeout_seconds,omitempty"`
-	// Alert Groups (referência aos grupos de alerta)
-	AlertGroupID *int `json:"alert_group_id,omitempty"`
-	// Control Fields
-	Enabled   bool      `json:"enabled"`
-	LastCheck time.Time `json:"last_check,omitempty"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	AlertGroupID         *int           `json:"alert_group_id,omitempty"`
+	Enabled              bool           `json:"enabled,omitempty"`
+	LastCheck            time.Time      `json:"last_check,omitempty"`
+	CreatedAt            time.Time      `json:"created_at,omitempty"`
+	UpdatedAt            time.Time      `json:"updated_at,omitempty"`
 }
 
 // EndpointHealthHistory - Para manter histórico de checks
