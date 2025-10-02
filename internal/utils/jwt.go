@@ -11,14 +11,13 @@ import (
 var jwtSecret = []byte("your-secret-key-change-this-in-production") // TODO: mover para config
 
 type Claims struct {
-	UserID   int    `json:"id"`
 	UserUUID string `json:"uuid"`
 	Email    string `json:"email"`
 	*jwt.RegisteredClaims
 }
 
 // GenerateJWT gera um token JWT para o usuário
-func GenerateJWT(id int, uuid, email string) (string, error) {
+func GenerateJWT(uuid, email string) (string, error) {
 	cfg := config.Get()
 
 	// Usa configuração do config.yml
@@ -27,7 +26,6 @@ func GenerateJWT(id int, uuid, email string) (string, error) {
 	jwtSecret := []byte(cfg.JWT.JWTSecret)
 
 	claims := &Claims{
-		UserID:   id,
 		UserUUID: uuid,
 		Email:    email,
 		RegisteredClaims: &jwt.RegisteredClaims{
@@ -70,8 +68,8 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 	}
 
 	// Validar campos obrigatórios
-	if claims.UserID == 0 {
-		return nil, errors.New("token inválido: campo 'id' ausente ou inválido")
+	if claims.UserUUID == "" {
+		return nil, errors.New("token inválido: campo 'uuid' ausente ou inválido")
 	}
 	if claims.Email == "" {
 		return nil, errors.New("token inválido: campo 'email' ausente")

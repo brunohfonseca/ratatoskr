@@ -38,14 +38,13 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Validar se usuário ainda existe e dados batem com o banco
 		db := postgres.PostgresConn
-		var userID int
 		var userUUID, userEmail string
 		var enabled bool
 
 		err = db.QueryRow(
-			"SELECT id, uuid, email, enabled FROM users WHERE id = $1",
-			claims.UserID,
-		).Scan(&userID, &userUUID, &userEmail, &enabled)
+			"SELECT uuid, email, enabled FROM users WHERE uuid = $1",
+			claims.UserUUID,
+		).Scan(&userUUID, &userEmail, &enabled)
 
 		if err != nil {
 			responses.ErrorMsg(c, http.StatusUnauthorized, "User not found")
@@ -75,7 +74,6 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Adicionar informações do usuário no contexto
-		c.Set("id", claims.UserID)
 		c.Set("uuid", claims.UserUUID)
 		c.Set("user_email", claims.Email)
 

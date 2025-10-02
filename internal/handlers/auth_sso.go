@@ -132,7 +132,7 @@ func KeycloakCallback(c *gin.Context) {
 	}
 
 	// Busca ou cria usuário no banco
-	userID, userUUID, err := getOrCreateUser(claims.Email, claims.Name)
+	userUUID, err := getOrCreateUser(claims.Email, claims.Name)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get or create user")
 		responses.ErrorMsg(c, http.StatusInternalServerError, "Failed to create user account")
@@ -140,7 +140,7 @@ func KeycloakCallback(c *gin.Context) {
 	}
 
 	// Gera JWT interno da aplicação
-	token, err := utils.GenerateJWT(userID, userUUID, claims.Email)
+	token, err := utils.GenerateJWT(userUUID, claims.Email)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to generate JWT")
 		responses.ErrorMsg(c, http.StatusInternalServerError, "Failed to generate token")
@@ -151,7 +151,6 @@ func KeycloakCallback(c *gin.Context) {
 	responses.Success(c, http.StatusOK, gin.H{
 		"token": token,
 		"user": gin.H{
-			"id":    userID,
 			"uuid":  userUUID,
 			"email": claims.Email,
 			"name":  claims.Name,
@@ -160,51 +159,50 @@ func KeycloakCallback(c *gin.Context) {
 }
 
 // getOrCreateUser busca ou cria um usuário no banco baseado no email do SSO
-func getOrCreateUser(email, name string) (int, string, error) {
+func getOrCreateUser(email, name string) (string, error) {
 	db := postgres.PostgresConn
 
 	// Tenta buscar usuário existente por email
-	var userID int
 	var userUUID string
 	var enabled bool
 
 	err := db.QueryRow(
-		"SELECT id, uuid, enabled FROM users WHERE email = $1",
+		"SELECT uuid, enabled FROM users WHERE email = $1",
 		email,
-	).Scan(&userID, &userUUID, &enabled)
+	).Scan(&userUUID, &enabled)
 
 	if err == nil {
 		// Usuário existe
 		if !enabled {
-			return 0, "", sql.ErrNoRows // Usuário desabilitado
+			return "", sql.ErrNoRows // Usuário desabilitado
 		}
-		return userID, userUUID, nil
+		return userUUID, nil
 	}
 
 	if err != sql.ErrNoRows {
 		// Erro inesperado
-		return 0, "", err
+		return "", err
 	}
 
 	// Usuário não existe, cria novo
 	err = db.QueryRow(`
 		INSERT INTO users (email, full_name, enabled, password_hash, auth_provider)
 		VALUES ($1, $2, true, '', 'keycloak')
-		RETURNING id, uuid`,
+		RETURNING uuid`,
 		email,
 		name,
-	).Scan(&userID, &userUUID)
+	).Scan(&userUUID)
 
 	if err != nil {
-		return 0, "", err
+		return "", err
 	}
 
 	log.Info().
-		Int("user_id", userID).
+		Str("user_id", userUUID).
 		Str("email", email).
 		Msg("New user created via SSO")
 
-	return userID, userUUID, nil
+	return userUUID, nil
 }
 
 // generateRandomState gera um state aleatório para OAuth2

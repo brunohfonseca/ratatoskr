@@ -41,7 +41,7 @@ func AuditMiddleware() gin.HandlerFunc {
 // logAudit registra a operação no banco de dados
 func logAudit(c *gin.Context, bodyBytes []byte) {
 	// Extrai informações do contexto
-	userID, exists := c.Get("id")
+	userID, exists := c.Get("uuid")
 	if !exists {
 		userID = nil // Operações sem autenticação
 	}
@@ -50,7 +50,7 @@ func logAudit(c *gin.Context, bodyBytes []byte) {
 	tableName := extractTableName(c.FullPath())
 
 	// Extrai o ID do recurso (se houver)
-	recordID := c.Param("id")
+	recordID := c.Param("uuid")
 	if recordID == "" {
 		recordID = "unknown"
 	}

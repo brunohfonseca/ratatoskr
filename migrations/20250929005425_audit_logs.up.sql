@@ -1,13 +1,12 @@
 -- Log de auditoria
 CREATE TABLE audit_log (
-    id BIGSERIAL PRIMARY KEY,
-    uuid UUID DEFAULT uuidv7() NOT NULL,
+    uuid UUID DEFAULT uuidv7() NOT NULL PRIMARY KEY,
     table_name TEXT NOT NULL,
     record_id TEXT NOT NULL,
     operation TEXT NOT NULL,              -- INSERT, UPDATE, DELETE
     changed_data JSONB NOT NULL,
     changed_at TIMESTAMPTZ DEFAULT now(),
-    user_id INT REFERENCES users(id)
+    user_id UUID REFERENCES users(uuid)
 );
 
 -- Índice para melhorar performance de consultas

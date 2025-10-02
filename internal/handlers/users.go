@@ -55,9 +55,8 @@ func Login(c *gin.Context) {
 	// Buscar usuário pelo email
 	var user models.User
 	var passwordHash string
-	sql := "SELECT id, uuid, email, full_name, password_hash, enabled FROM users WHERE email = $1"
+	sql := "SELECT uuid, email, full_name, password_hash, enabled FROM users WHERE email = $1"
 	err := db.QueryRow(sql, loginRequest.Email).Scan(
-		&user.ID,
 		&user.UUID,
 		&user.Email,
 		&user.FullName,
@@ -88,7 +87,7 @@ func Login(c *gin.Context) {
 	}
 
 	// Gerar JWT token
-	token, err := utils.GenerateJWT(user.ID, user.UUID, user.Email)
+	token, err := utils.GenerateJWT(user.UUID, user.Email)
 	if err != nil {
 		ErrMsg := "Error in token generation: " + err.Error()
 		responses.ErrorMsg(c, http.StatusInternalServerError, ErrMsg)

@@ -11,7 +11,7 @@ import (
 )
 
 // CreateEndpoint salva o endpoint no banco e envia pro Redis
-func CreateEndpoint(endpoint *models.Endpoint, userID int) error {
+func CreateEndpoint(endpoint *models.Endpoint, userID string) error {
 	db := postgres.PostgresConn
 
 	sql := "INSERT INTO endpoints (name, domain, path, check_ssl, expected_response_code, timeout_seconds, last_modified_by) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING uuid, status"

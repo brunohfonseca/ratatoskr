@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/brunohfonseca/ratatoskr/internal/models"
@@ -18,17 +19,36 @@ func ProcessEndpoint(ctx context.Context, redisClient *redis.Client, stream, gro
 	uuid, _ := msg.Values["uuid"].(string)
 	domain, _ := msg.Values["domain"].(string)
 	path, _ := msg.Values["path"].(string)
-	expectedResponseCode, _ := msg.Values["expected_response_code"].(int)
-	timeout, _ := msg.Values["timeout"].(int)
 	checkSSLStr, _ := msg.Values["check_ssl"].(string)
+
+	// Redis armazena valores como string, precisa converter para int
+	expectedResponseCodeStr, _ := msg.Values["expected_response_code"].(string)
+	expectedResponseCode, err := strconv.Atoi(expectedResponseCodeStr)
+	if err != nil {
+		logger.ErrLog("Erro ao converter expected_response_code", err)
+		expectedResponseCode = 200 // Default
+	}
+
+	timeoutStr, _ := msg.Values["timeout"].(string)
+	timeout, err := strconv.Atoi(timeoutStr)
+	if err != nil {
+		logger.ErrLog("Erro ao converter timeout", err)
+		timeout = 30 // Default 30 segundos
+	}
 
 	url := fmt.Sprintf("%s%s", domain, path)
 	check := doHealthCheck(url, expectedResponseCode, timeout)
 
-	log := fmt.Sprintf("Checked Endpoint: UUID=%s, ExpectedResponseCode=%d, ResponseTime=%d, ResponseCode=%d, ResponseMessage=%s", check.UUID, check.ExpectedResponseCode, check.ResponseTime, check.ResponseStatusCode, check.ResponseMessage)
+	log := fmt.Sprintf("Checked Endpoint: UUID=%s, ExpectedResponseCode=%d, ResponseTime=%d, ResponseCode=%d, ResponseMessage=%s", uuid, expectedResponseCode, check.ResponseTime, check.ResponseStatusCode, check.ResponseMessage)
 	logger.DebugLog(log)
 
-	err := services.UpdateCheck(uuid, check)
+	err = services.UpdateCheck(uuid, check)
+	if err != nil {
+		logger.ErrLog("Erro ao atualizar endpoint", err)
+		return
+	}
+
+	err = services.RegisterCheck(uuid, check)
 	if err != nil {
 		logger.ErrLog("Erro ao atualizar endpoint", err)
 		return
@@ -45,7 +65,7 @@ func ProcessEndpoint(ctx context.Context, redisClient *redis.Client, stream, gro
 	logger.DebugLog(logMsg)
 }
 
-func doHealthCheck(url string, timeout, expectedResponseCode int) models.EndpointResponse {
+func doHealthCheck(url string, expectedResponseCode, timeout int) models.EndpointResponse {
 	start := time.Now()
 
 	client := &http.Client{

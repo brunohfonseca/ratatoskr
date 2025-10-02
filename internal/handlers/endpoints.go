@@ -25,20 +25,20 @@ func CreateEndpoint(c *gin.Context) {
 	}
 
 	// Extrair user_id do contexto (colocado pelo middleware JWT)
-	userIDInterface, exists := c.Get("id")
+	userUUIDInterface, exists := c.Get("uuid")
 	if !exists {
 		responses.ErrorMsg(c, http.StatusInternalServerError, "Usuário não autenticado")
 		return
 	}
 
-	userID, ok := userIDInterface.(int)
+	userUUID, ok := userUUIDInterface.(string)
 	if !ok {
-		responses.ErrorMsg(c, http.StatusInternalServerError, "ID de usuário inválido")
+		responses.ErrorMsg(c, http.StatusInternalServerError, "UUID de usuário inválido")
 		return
 	}
 
 	// Chama o service
-	if err := services.CreateEndpoint(&endpoint, userID); err != nil {
+	if err := services.CreateEndpoint(&endpoint, userUUID); err != nil {
 		responses.Error(c, http.StatusInternalServerError, err)
 		return
 	}
